@@ -10,6 +10,10 @@ app = Flask(__name__)
 CORS(app)  # Enable CORS
 load_dotenv()
 
+@app.route('/')
+def index():
+    return "<p>Welcome to the API!</p>"
+
 @app.route('/api/generate-questions', methods=['POST'])
 def generate_questions():
     # Initialize OpenAI API client
