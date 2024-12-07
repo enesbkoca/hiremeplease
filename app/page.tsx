@@ -10,7 +10,7 @@ export default function Home() {
 
   const generateQuestions = async () => {
     try {
-      const response = await axios.post('http://127.0.0.1:5000/generate-questions', {
+      const response = await axios.post('/api/generate-questions', {
         jobDescription: jobDescription
       });
 
