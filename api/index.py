@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 app = Flask(__name__)
 load_dotenv()
 
-@app.route('/')
+@app.route('/api')
 def index():
     return "<p>Welcome to the API!</p>"
 
