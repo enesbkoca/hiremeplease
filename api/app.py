@@ -1,13 +1,10 @@
 import os
 
 from flask import Flask, request, jsonify
-from flask_cors import CORS
 from openai import OpenAI
 from dotenv import load_dotenv
 
-
 app = Flask(__name__)
-CORS(app)  # Enable CORS
 load_dotenv()
 
 @app.route('/')
@@ -21,7 +18,6 @@ def generate_questions():
 
     data = request.json
     job_description = data.get('jobDescription', '')
-
 
     response = client.chat.completions.create(
         model="gpt-4o",
