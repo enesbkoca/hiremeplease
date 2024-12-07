@@ -1,21 +1,25 @@
 'use client'
 
 import { useState } from "react";
+import axios from 'axios';
 
 export default function Home() {
   const [jobDescription, setJobDescription] = useState("");
   const [interviewQuestions, setInterviewQuestions] = useState<string[]>([]);
+  const [submittedJobDescription, setSubmittedJobDescription] = useState("");
 
-  const generateQuestions = () => {
-    // Here you would call your backend API to generate interview questions
-    // For now, we'll simulate the question generation with dummy data.
-    const questions = [
-      "What interests you about this job?",
-      "How do your skills align with this role?",
-      "Can you describe a challenging project you've worked on?",
-      "Why do you want to work with our company?",
-    ];
-    setInterviewQuestions(questions);
+  const generateQuestions = async () => {
+    try {
+      const response = await axios.post('http://127.0.0.1:5000/generate-questions', {
+        jobDescription: jobDescription
+      });
+
+      const data = response.data;
+      setInterviewQuestions(data.questions);
+      setSubmittedJobDescription(data.jobDescription);
+    } catch (error) {
+      console.error('Error generating questions:', error);
+    }
   };
 
   return (
@@ -39,6 +43,13 @@ export default function Home() {
           >
             Generate Interview Questions
           </button>
+
+          {submittedJobDescription && (
+              <div className="mt-8 w-full sm:w-96">
+                <h2 className="text-lg font-semibold">Job Description:</h2>
+                <p className="mb-4">{submittedJobDescription}</p>
+              </div>
+          )}
 
           {interviewQuestions.length > 0 && (
               <div className="mt-8 w-full sm:w-96">
