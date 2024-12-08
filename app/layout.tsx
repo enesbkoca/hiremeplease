@@ -27,18 +27,18 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  return (
-    <html lang="en">
-      <body
-          className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-      <Header/>
-      {children}
-      <Footer/>
-      <div className="analyticsComponent">
-        <Analytics/>
-      </div>
-      </body>
-    </html>
-  );
+    return (
+        <html lang="en">
+        <body className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen`}>
+        <Header />
+        <main className="flex-grow">
+            {children}
+        </main>
+        <Footer />
+        <div className="analyticsComponent">
+            <Analytics />
+        </div>
+        </body>
+        </html>
+    );
 }
