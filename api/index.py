@@ -27,11 +27,11 @@ def generate_questions():
         ]
     )
 
-    message_content = response.choices[0].message.content
+    questions = response.choices[0].message.content
 
     response_data = {
         'jobDescription': job_description,
-        'questions': [message_content]
+        'questions': [questions]
     }
 
     return jsonify(response_data)
