@@ -1,9 +1,11 @@
 'use client'
 
-import { useState } from "react";
 import axios from 'axios';
 
-
+import { useState } from "react";
+import { JobDescriptionInput } from './components/JobDescriptionInput';
+import { JobDescriptionDisplay } from './components/JobDescriptionDisplay';
+import { InterviewQuestionsList } from './components/InterviewQuestionsList';
 
 export default function Home() {
   const [jobDescription, setJobDescription] = useState("");
@@ -32,37 +34,19 @@ export default function Home() {
             Enter a job description, and we will generate interview questions to help you prepare.
           </p>
 
-          <textarea
-              className="border-2 border-gray-300 rounded-lg p-4 w-full"
-              placeholder="Paste the job description here..."
-              value={jobDescription}
-              onChange={(e) => setJobDescription(e.target.value)}
+          <JobDescriptionInput
+              jobDescription={jobDescription}
+              onJobDescriptionChange={setJobDescription}
+              onGenerateQuestions={generateQuestions}
           />
 
-          <button
-              className="mt-4 bg-blue-500 text-white rounded-full px-6 py-2 hover:bg-blue-600"
-              onClick={generateQuestions}
-          >
-            Generate Interview Questions
-          </button>
+          <JobDescriptionDisplay
+              submittedJobDescription={submittedJobDescription}
+          />
 
-          {submittedJobDescription && (
-              <div className="mt-8 w-full sm:w-96">
-                <h2 className="text-lg font-semibold">Job Description:</h2>
-                <p className="mb-4">{submittedJobDescription}</p>
-              </div>
-          )}
-
-          {interviewQuestions.length > 0 && (
-              <div className="mt-8 w-full sm:w-96">
-                <h2 className="text-lg font-semibold">Interview Questions:</h2>
-                <ul className="list-disc pl-5">
-                  {interviewQuestions.map((question, index) => (
-                      <li key={index} className="mb-2">{question}</li>
-                  ))}
-                </ul>
-              </div>
-          )}
+          <InterviewQuestionsList
+              questions={interviewQuestions}
+          />
         </main>
       </div>
   );
