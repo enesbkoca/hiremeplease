@@ -9,11 +9,10 @@ import { InterviewQuestionsList } from '../components/InterviewQuestionsList';
 
 export default function Questions() {
     const router = useRouter();
-    const searchParams = useSearchParams()
-    const jobDescription = searchParams.get("description");
-
+    const [jobDescription, setJobDescription] = useState<string | null>(null);
     const [interviewQuestions, setInterviewQuestions] = useState<string[]>([]);
     const [submittedJobDescription, setSubmittedJobDescription] = useState("");
+  
 
     const generateQuestions = async () => {
         try {
@@ -68,5 +67,5 @@ function JobDescriptionLoader({ setJobDescription }: { setJobDescription: (desc:
     setJobDescription(description);
   }, [searchParams]);
 
-  return null; // This component handles loading the job description but doesn't render anything
+  return null;
 }
