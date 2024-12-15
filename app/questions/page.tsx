@@ -2,7 +2,7 @@
 
 import axios from 'axios';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 
 import { JobDescriptionDisplay } from '../components/JobDescriptionDisplay';
 import { InterviewQuestionsList } from '../components/InterviewQuestionsList';
