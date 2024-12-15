@@ -4,7 +4,6 @@ import axios from 'axios';
 import { useSearchParams } from 'next/navigation';
 import { useEffect, useState, Suspense } from 'react';
 
-import { JobDescriptionDisplay } from '../components/JobDescriptionDisplay';
 import { InterviewQuestionsList } from '../components/InterviewQuestionsList';
 
 export default function Questions() {
