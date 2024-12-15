@@ -39,7 +39,7 @@ export default function Questions() {
             }
         };
         fetchQuestions();
-        }, [jobDescription]);
+        }, [jobDescription, generateQuestions, router]);
     
 
     return (

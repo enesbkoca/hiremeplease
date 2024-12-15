@@ -1,6 +1,5 @@
 'use client'
 
-import axios from 'axios';
 import { useRouter } from 'next/navigation';
 
 import Link from 'next/link';
@@ -9,8 +8,6 @@ import { useState } from "react";
 import { JobDescriptionInput } from './components/JobDescriptionInput';
 
 export default function Home() {
-  const router = useRouter();
-
   const [jobDescription, setJobDescription] = useState("");
 
   return (
