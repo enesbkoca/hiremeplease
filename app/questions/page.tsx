@@ -10,8 +10,7 @@ import { InterviewQuestionsList } from '../components/InterviewQuestionsList';
 export default function Questions() {
     const [jobDescription, setJobDescription] = useState<string | null>(null);
     const [interviewQuestions, setInterviewQuestions] = useState<string[]>([]);
-    const [submittedJobDescription, setSubmittedJobDescription] = useState("");
-  
+
 
     const generateQuestions = async () => {
         try {
@@ -21,7 +20,6 @@ export default function Questions() {
     
           const data = response.data;
           setInterviewQuestions(data.questions);
-          setSubmittedJobDescription(data.jobDescription);
     
         } catch (error) {
           console.error('Error generating questions:', error);
@@ -36,18 +34,13 @@ export default function Questions() {
         };
 
         fetchQuestions();
-        }, [jobDescription]);
+        }, [jobDescription, interviewQuestions]);
     
   return (
     <Suspense fallback={<p>Loading...</p>}>
       <JobDescriptionLoader setJobDescription={setJobDescription} />
       <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-[70vh] p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
         <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-
-          <JobDescriptionDisplay
-            submittedJobDescription={submittedJobDescription}
-          />
-
           <InterviewQuestionsList
             questions={interviewQuestions}
           />
