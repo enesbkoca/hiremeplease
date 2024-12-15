@@ -38,8 +38,9 @@ export default function Questions() {
                 router.push("/");
             }
         };
+
         fetchQuestions();
-        }, [jobDescription, generateQuestions, router]);
+        }, [jobDescription]);
     
 
     return (
