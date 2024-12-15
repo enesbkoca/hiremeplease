@@ -3,6 +3,9 @@
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react'; 
 
+import { JobDescriptionDisplay } from './components/JobDescriptionDisplay';
+import { InterviewQuestionsList } from './components/InterviewQuestionsList';
+
 export default function Questions() {
     const router = useRouter();
     const {data} = router.query;
