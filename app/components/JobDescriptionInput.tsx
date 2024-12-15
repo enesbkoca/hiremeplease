@@ -3,13 +3,11 @@ import React from 'react';
 interface JobDescriptionInputProps {
     jobDescription: string;
     onJobDescriptionChange: (description: string) => void;
-    onGenerateQuestions: () => void;
 }
 
 export const JobDescriptionInput: React.FC<JobDescriptionInputProps> = ({
                                                                             jobDescription,
                                                                             onJobDescriptionChange,
-                                                                            onGenerateQuestions
                                                                         }) => {
     return (
         <>
@@ -20,12 +18,12 @@ export const JobDescriptionInput: React.FC<JobDescriptionInputProps> = ({
           onChange={(e) => onJobDescriptionChange(e.target.value)}
       />
 
-            <button
+            {/* <button
                 className="mt-4 bg-blue-500 text-white rounded-full px-6 py-2 hover:bg-blue-600"
                 onClick={onGenerateQuestions}
             >
                 Generate Interview Questions
-            </button>
+            </button> */}
         </>
     );
 };

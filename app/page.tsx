@@ -18,7 +18,6 @@ export default function Home() {
           <JobDescriptionInput
               jobDescription={jobDescription}
               onJobDescriptionChange={setJobDescription}
-              onGenerateQuestions={generateQuestions}
           />
           <Link
             href={{
