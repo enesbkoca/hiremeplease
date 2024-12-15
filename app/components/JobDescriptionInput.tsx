@@ -13,7 +13,7 @@ export const JobDescriptionInput: React.FC<JobDescriptionInputProps> = ({
     return (
         <>
             <textarea
-                className="border-2 border-gray-300 rounded-lg p-4 w-full"
+                className="border-2 border-gray-300 rounded-lg p-4 w-full isRequired isClearable"
                 placeholder="Paste the job description here..."
                 value={jobDescription}
                 onChange={(e) => onJobDescriptionChange(e.target.value)}
