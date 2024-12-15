@@ -1,7 +1,7 @@
 'use client'
 
 import axios from 'axios';
-import{useRouter} from 'next/router';
+import{useRouter} from 'next/navigation';
 
 import { useState } from "react";
 import { JobDescriptionInput } from './components/JobDescriptionInput';
@@ -29,7 +29,7 @@ export default function Home() {
         pathway: "/questions",
         query: {data: data} 
       });
-      
+
     } catch (error) {
       console.error('Error generating questions:', error);
     }
