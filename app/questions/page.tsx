@@ -33,7 +33,7 @@ export default function Questions() {
         };
 
         fetchQuestions();
-        }, [jobDescription, interviewQuestions]);
+        }, [jobDescription]);
     
   return (
     <Suspense fallback={<p>Loading...</p>}>
