@@ -1,6 +1,7 @@
 'use client'
 
 import axios from 'axios';
+import{useRouter} from 'next/router';
 
 import { useState } from "react";
 import { JobDescriptionInput } from './components/JobDescriptionInput';
@@ -8,6 +9,8 @@ import { JobDescriptionDisplay } from './components/JobDescriptionDisplay';
 import { InterviewQuestionsList } from './components/InterviewQuestionsList';
 
 export default function Home() {
+  const router = useRouter();
+
   const [jobDescription, setJobDescription] = useState("");
   const [interviewQuestions, setInterviewQuestions] = useState<string[]>([]);
   const [submittedJobDescription, setSubmittedJobDescription] = useState("");
@@ -21,6 +24,12 @@ export default function Home() {
       const data = response.data;
       setInterviewQuestions(data.questions);
       setSubmittedJobDescription(data.jobDescription);
+
+      router.push({
+        pathway: "/questions",
+        query: {data: data} 
+      });
+      
     } catch (error) {
       console.error('Error generating questions:', error);
     }
