@@ -1,6 +1,6 @@
 'use client'
 
-import Link from 'next/link';
+
 import { useState } from "react";
 import { JobDescriptionInput } from './components/JobDescriptionInput';
 
@@ -19,16 +19,7 @@ export default function Home() {
               jobDescription={jobDescription}
               onJobDescriptionChange={setJobDescription}
           />
-          <Link
-            href={{
-              pathname: '/questions',
-              query: {
-                description: jobDescription
-              }
-            }}
-          >
-            Generate Questions
-          </Link>
+          
         </main>
       </div>
   );
