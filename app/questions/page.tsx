@@ -1,14 +1,13 @@
 'use client'
 
 import axios from 'axios';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { useEffect, useState, Suspense } from 'react';
 
 import { JobDescriptionDisplay } from '../components/JobDescriptionDisplay';
 import { InterviewQuestionsList } from '../components/InterviewQuestionsList';
 
 export default function Questions() {
-    const router = useRouter();
     const [jobDescription, setJobDescription] = useState<string | null>(null);
     const [interviewQuestions, setInterviewQuestions] = useState<string[]>([]);
     const [submittedJobDescription, setSubmittedJobDescription] = useState("");
