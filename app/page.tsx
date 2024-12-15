@@ -1,39 +1,17 @@
 'use client'
 
 import axios from 'axios';
-import{useRouter} from 'next/navigation';
+import { useRouter } from 'next/navigation';
+
+import Link from 'next/link';
 
 import { useState } from "react";
 import { JobDescriptionInput } from './components/JobDescriptionInput';
-import { JobDescriptionDisplay } from './components/JobDescriptionDisplay';
-import { InterviewQuestionsList } from './components/InterviewQuestionsList';
 
 export default function Home() {
   const router = useRouter();
 
   const [jobDescription, setJobDescription] = useState("");
-  const [interviewQuestions, setInterviewQuestions] = useState<string[]>([]);
-  const [submittedJobDescription, setSubmittedJobDescription] = useState("");
-
-  const generateQuestions = async () => {
-    try {
-      const response = await axios.post('/api/generate-questions', {
-        jobDescription: jobDescription
-      });
-
-      const data = response.data;
-      setInterviewQuestions(data.questions);
-      setSubmittedJobDescription(data.jobDescription);
-
-      router.push({
-        pathway: "/questions",
-        query: {data: data} 
-      });
-
-    } catch (error) {
-      console.error('Error generating questions:', error);
-    }
-  };
 
   return (
       <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-[70vh] p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
@@ -48,14 +26,16 @@ export default function Home() {
               onJobDescriptionChange={setJobDescription}
               onGenerateQuestions={generateQuestions}
           />
-
-          <JobDescriptionDisplay
-              submittedJobDescription={submittedJobDescription}
-          />
-
-          <InterviewQuestionsList
-              questions={interviewQuestions}
-          />
+          <Link
+            href={{
+              pathname: '/questions',
+              query: {
+                description: jobDescription
+              }
+            }}
+          >
+            Generate Questions
+          </Link>
         </main>
       </div>
   );
