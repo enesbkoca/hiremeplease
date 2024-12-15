@@ -42,19 +42,31 @@ export default function Questions() {
         fetchQuestions();
         }, [jobDescription]);
     
-
-    return (
+  return (
+    <Suspense fallback={<p>Loading...</p>}>
+      <JobDescriptionLoader setJobDescription={setJobDescription} />
       <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-[70vh] p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
         <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
 
           <JobDescriptionDisplay
-              submittedJobDescription={submittedJobDescription}
+            submittedJobDescription={submittedJobDescription}
           />
 
           <InterviewQuestionsList
-              questions={interviewQuestions}
+            questions={interviewQuestions}
           />
         </main>
       </div>
+    </Suspense>
   );
+}
+      
+function JobDescriptionLoader({ setJobDescription }: { setJobDescription: (desc: string | null) => void }) {
+  const searchParams = useSearchParams();
+  useEffect(() => {
+    const description = searchParams.get("description");
+    setJobDescription(description);
+  }, [searchParams]);
+
+  return null; // This component handles loading the job description but doesn't render anything
 }
