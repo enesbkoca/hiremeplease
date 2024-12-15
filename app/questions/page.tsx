@@ -33,8 +33,6 @@ export default function Questions() {
         const fetchQuestions = async () => {
             if (jobDescription) {
                 await generateQuestions();
-            } else {
-                router.push("/");
             }
         };
 
