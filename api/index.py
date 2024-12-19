@@ -1,4 +1,7 @@
 import os
+import uuid
+import time
+import threading
 
 from flask import Flask, request, jsonify
 from openai import OpenAI
@@ -7,9 +10,41 @@ from dotenv import load_dotenv
 app = Flask(__name__)
 load_dotenv()
 
+jobs = {}
+
+def process_job(description_id, description):
+    time.sleep(5)
+    jobs[description_id] = {
+        "status": "completed",
+        "results": {"message": f"Processed: {description}"}
+    }
+
 @app.route('/api')
 def index():
     return "<p>Welcome to the API!</p>"
+
+@app.route('/api/create-job', methods=['POST'])
+def create_job():
+    data = request.json
+    description = data.get("description")
+
+    if not description:
+        return jsonify({"error": f"Description is required, but was provided with {description}"}), 400
+
+    description_id = str(uuid.uuid4())
+
+    threading.Thread(target=process_job, args=(description_id, description)).start()
+
+    return jsonify({"jobId": description_id})
+
+@app.route('/api/jobs/<job_id>', methods=['GET'])
+def get_job(job_id):
+    # job = jobs.get(job_id)
+    job = {"title": "SRE baby", "description": "Do some shit"}
+    if job:
+        return jsonify(job)
+    else:
+        return jsonify({"error": "Job Description not found"}), 404
 
 @app.route('/api/generate-questions', methods=['POST'])
 def generate_questions():

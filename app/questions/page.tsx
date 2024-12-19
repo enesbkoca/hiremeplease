@@ -10,7 +10,6 @@ export default function Questions() {
     const [jobDescription, setJobDescription] = useState<string | null>(null);
     const [interviewQuestions, setInterviewQuestions] = useState<string[]>([]);
 
-
     const generateQuestions = async () => {
         try {
           const response = await axios.post('/api/generate-questions', {
