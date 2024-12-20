@@ -19,7 +19,7 @@ async function getJobDetails(jobId: string): Promise<JobResponse | null> {
         const fullUrl = process.env.NEXT_PUBLIC_API_URL + "/api/jobs/" + jobId;
         const res = await fetch(fullUrl);
         if (!res.ok) {
-            throw new Error(`Failed to fetch job data: ${res.status} ${res.statusText}`);
+            return Promise.reject(new Error(`Failed to fetch job data: ${res.status} ${res.statusText}`));
         }
         return res.json();
     } catch (error) {
