@@ -16,7 +16,7 @@ interface JobResponse {
 
 async function getJobDetails(jobId: string): Promise<JobResponse | null> {
     try {
-        const res = await fetch(`/api/create-job/${jobId}`);
+        const res = await fetch(`/api/jobs/${jobId}`);
 
         if (!res.ok) {
             return Promise.reject(new Error(`Failed to fetch job data: ${res.status} ${res.statusText}`));
