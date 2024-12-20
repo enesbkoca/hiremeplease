@@ -16,7 +16,7 @@ interface JobResponse {
 
 async function getJobDetails(jobId: string): Promise<JobResponse | null> {
     try {
-        const fullUrl = process.env.NEXT_PUBLIC_API_URL + "/api/jobs/" + jobId;
+        const fullUrl = process.env.VERCEL_URL + "/api/jobs/" + jobId;
         const res = await fetch(fullUrl);
         if (!res.ok) {
             return Promise.reject(new Error(`Failed to fetch job data: ${res.status} ${res.statusText}`));
