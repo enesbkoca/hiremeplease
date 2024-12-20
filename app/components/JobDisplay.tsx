@@ -89,11 +89,11 @@ export default function JobDisplay({ jobId }: { jobId: string }) {
     return (
         <>
             {jobDetails && (
-                <div className="p-8 sm:p-20 flex flex-col items-center w-full">
+                <div className="mt-8 w-full max-w-3xl rounded-lg border border-gray-200 p-6 shadow-sm"> {/* Combined all styles into one div */}
                     <JobDescriptionDisplay title={jobDetails.title} description={jobDetails.description} />
                     <InterviewQuestionsList questions={jobDetails.questions} />
                 </div>
             )}
         </>
     );
-}
+    }

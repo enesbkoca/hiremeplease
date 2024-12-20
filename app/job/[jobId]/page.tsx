@@ -10,8 +10,10 @@ export default async function JobPage({ params }: { params: Params }) {
     const jobId = resolvedParams.jobId;
 
     return (
-        <Suspense fallback={<p>Loading Job Page...</p>}>
-            <JobDisplay jobId={jobId} />
+        <Suspense fallback={<p>Loading Your Questions...</p>}>
+            <div className="grid place-items-center h-full min-h-screen">
+                <JobDisplay jobId={jobId}/>
+            </div>
         </Suspense>
     );
 }
