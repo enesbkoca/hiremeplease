@@ -9,7 +9,6 @@ interface Params {
 async function getJobDetails(jobId: string) {
     try {
         const fullUrl = process.env.NEXT_PUBLIC_API_URL + "/api/jobs/" + jobId;
-        await new Promise(resolve => setTimeout(resolve, 5000));
         const res = await fetch(fullUrl);
 
         if (!res.ok) {
@@ -26,14 +25,18 @@ export default async function JobPage({ params }: { params: Params }) {
     // Await the params
     const {jobId} = await params;
 
-    const jobDetails = await getJobDetails(jobId);
+    console.log(`jobID: `, jobId);
 
-    if (!jobDetails) {
+    const jobResponse = await getJobDetails(jobId);
+    const jobDetails = jobResponse.results;
+    const jobStatus = jobResponse.status;
+
+    if (!jobResponse) {
         notFound();
     }
     return (
         <div>
-            <h1>Job ID: {jobId}</h1>
+            <h1>Job status: {jobStatus}</h1>
             {jobDetails && (
                 <div>
                     <JobDescriptionDisplay title={jobDetails.title} description={jobDetails.description}/>

@@ -31,14 +31,20 @@ def generate_questions(job_description):
     return questions
 
 def process_job(description_id, description):
-    print("Processing job with id ", description_id)
+    jobs[description_id] = {
+        "status": "Processing",
+        "results": None
+    }
 
     questions = generate_questions(description)
 
     jobs[description_id] = {
-        "title": "Generic Job Title",
-        "description": description,
-        "questions": questions
+        "status": "Completed",
+        "results": {
+            "title": "Generic Job Title",
+            "description": description,
+            "questions": questions
+        }
     }
 
 @app.route('/api')
@@ -54,6 +60,11 @@ def create_job():
         return jsonify({"error": f"Description is required, but was provided with {description}"}), 400
 
     description_id = str(uuid.uuid4())
+
+    jobs[description_id] = {
+        "status": "Created",
+        "results": None
+    }
 
     threading.Thread(target=process_job, args=(description_id, description)).start()
 
