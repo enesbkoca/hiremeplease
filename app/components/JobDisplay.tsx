@@ -24,7 +24,7 @@ async function getJobDetails(jobId: string): Promise<JobResponse | null> {
         return res.json();
     } catch (error) {
         console.error("Error fetching job data:", error);
-        return null;
+        throw error;
     }
 }
 
