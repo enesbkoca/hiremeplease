@@ -96,4 +96,4 @@ export default function JobDisplay({ jobId }: { jobId: string }) {
             )}
         </>
     );
-    }
+}
