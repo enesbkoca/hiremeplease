@@ -6,8 +6,7 @@ interface Params {
 }
 
 export default async function JobPage({ params }: { params: Params }) {
-    const resolvedParams = await params;
-    const jobId = resolvedParams.jobId;
+    const { jobId } = await params;
 
     return (
         <div className="flex justify-center items-center h-full min-h-screen">
