@@ -16,7 +16,8 @@
     "next": "^15.0.3",
     "node": "^20.18.1",
     "react": "19.0.0-rc-66855b96-20241106",
-    "react-dom": "19.0.0-rc-66855b96-20241106"
+    "react-dom": "19.0.0-rc-66855b96-20241106",
+    "react-spinners": "^0.15.0"
   },
   "devDependencies": {
     "@types/node": "^20",
