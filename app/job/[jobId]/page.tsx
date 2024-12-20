@@ -1,8 +1,7 @@
 import { Suspense } from 'react';
 import JobDisplay from "@/app/components/JobDisplay";
 
-
-export default async function JobPage({ params }: { params: { jobId: string } }) {
+export default async function JobPage({ params }: { params: Promise<{ jobId: string }> }) {
     const { jobId } = await params;
 
     return (
