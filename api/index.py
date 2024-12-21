@@ -1,7 +1,6 @@
 import os
 import uuid
-import asyncio
-
+import threading
 
 from flask import Flask, request, jsonify
 from openai import OpenAI
@@ -30,13 +29,21 @@ def generate_questions(job_description):
 
     return questions
 
-async def generate_and_store_questions(description_id, description):
+def process_job(description_id, description):
+    jobs[description_id] = {
+        "status": "Processing",
+        "results": None
+    }
+
     questions = generate_questions(description)
-    jobs[description_id]["status"] = "Completed"
-    jobs[description_id]["results"] = {
-        "title": "Generic Job Title",
-        "description": description,
-        "questions": questions
+
+    jobs[description_id] = {
+        "status": "Completed",
+        "results": {
+            "title": "Generic Job Title",
+            "description": description,
+            "questions": questions
+        }
     }
 
 @app.route('/api')
@@ -44,7 +51,7 @@ def index():
     return "<p>Welcome to the API!</p>"
 
 @app.route('/api/create-job', methods=['POST'])
-async def create_job():
+def create_job():
     data = request.json
     description = data.get("description")
 
@@ -58,7 +65,7 @@ async def create_job():
         "results": None
     }
 
-    await asyncio.create_task(generate_and_store_questions(description_id, description))
+    threading.Thread(target=process_job, args=(description_id, description)).start()
 
     return jsonify({"jobId": description_id})
 
