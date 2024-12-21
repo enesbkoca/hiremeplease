@@ -1,10 +1,11 @@
-FROM python:3.12
+FROM python:3.12-bookworm
 LABEL authors="enesb"
-WORKDIR /
+WORKDIR /app
 
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY . .
+COPY api/. /app/api
 
-CMD ["python3", "-m", "api.rq_worker"]
+# Use ENTRYPOINT to set the main command
+ENTRYPOINT ["python3", "-m", "api.rq_worker"]

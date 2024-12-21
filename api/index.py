@@ -15,7 +15,7 @@ redis_conn = Redis.from_url(os.getenv("REDIS_URL"))
 q = Queue("gpt_response", connection=redis_conn)
 
 # Initialize OpenAI API client
-client = OpenAI(api_key=os.getenv("API_KEY"))
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 
 def generate_questions(job_description):
