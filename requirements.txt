@@ -3,4 +3,5 @@ flask
 flask-cors
 openai
 Flask==3.0.3
-flask[async]
+redis
+rq
