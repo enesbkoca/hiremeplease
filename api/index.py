@@ -48,7 +48,6 @@ def generate_and_store_questions(description_id, description):
         "description": description,
         "questions": questions
     }
-
     redis_conn.hset("jobs", description_id, json.dumps(job_data))
 
 @app.route('/api')
