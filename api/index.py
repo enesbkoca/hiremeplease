@@ -1,3 +1,4 @@
+import json
 import os
 import uuid
 
@@ -12,8 +13,6 @@ load_dotenv()
 
 redis_conn = Redis.from_url(os.getenv("REDIS_URL"))
 q = Queue("gpt_response", connection=redis_conn)
-
-jobs = {}
 
 # Initialize OpenAI API client
 client = OpenAI(api_key=os.getenv("API_KEY"))
@@ -34,20 +33,30 @@ def generate_questions(job_description):
     return questions
 
 def generate_and_store_questions(description_id, description):
+    # Load job data and set status to processing
+    job_data = json.loads(redis_conn.hget("jobs", description_id))
+    job_data["status"] = "Processing"
+    redis_conn.hset("jobs", description_id, json.dumps(job_data))
+
+    #Generate questions
     questions = generate_questions(description)
-    jobs[description_id]["status"] = "Completed"
-    jobs[description_id]["results"] = {
+
+    # When questions are generated set status to completed and save them
+    job_data["status"] = "Completed"
+    job_data["results"] = {
         "title": "Generic Job Title",
         "description": description,
         "questions": questions
     }
+
+    redis_conn.hset("jobs", description_id, json.dumps(job_data))
 
 @app.route('/api')
 def index():
     return "<p>Welcome to the API!</p>"
 
 @app.route('/api/create-job', methods=['POST'])
-async def create_job():
+def create_job():
     data = request.json
     description = data.get("description")
 
@@ -56,20 +65,19 @@ async def create_job():
 
     description_id = str(uuid.uuid4())
 
-    jobs[description_id] = {
-        "status": "Created",
-        "results": None
-    }
-
+    job_data = {"status": "Created", "results": None}
+    redis_conn.hset("jobs", description_id, json.dumps(job_data))
     q.enqueue(generate_and_store_questions, description_id, description)
 
     return jsonify({"jobId": description_id})
 
 @app.route('/api/jobs/<job_id>', methods=['GET'])
 def get_job(job_id):
-    job = jobs.get(job_id)
-    if job:
-        return jsonify(job)
+    job_data_json = redis_conn.hget("jobs", job_id)
+
+    if job_data_json:
+        job_data = json.loads(job_data_json)
+        return jsonify(job_data)
     else:
         return jsonify({"error": "Job Description not found"}), 404
 
