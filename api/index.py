@@ -1,7 +1,9 @@
+import json
 import os
 import uuid
-import threading
 
+from rq import Queue
+from redis import Redis
 from flask import Flask, request, jsonify
 from openai import OpenAI
 from dotenv import load_dotenv
@@ -9,7 +11,8 @@ from dotenv import load_dotenv
 app = Flask(__name__)
 load_dotenv()
 
-jobs = {}
+redis_conn = Redis.from_url(os.getenv("REDIS_URL"))
+q = Queue("gpt_response", connection=redis_conn)
 
 # Initialize OpenAI API client
 client = OpenAI(api_key=os.getenv("API_KEY"))
@@ -29,22 +32,24 @@ def generate_questions(job_description):
 
     return questions
 
-def process_job(description_id, description):
-    jobs[description_id] = {
-        "status": "Processing",
-        "results": None
-    }
+def generate_and_store_questions(description_id, description):
+    # Load job data and set status to processing
+    job_data = json.loads(redis_conn.hget("jobs", description_id))
+    job_data["status"] = "Processing"
+    redis_conn.hset("jobs", description_id, json.dumps(job_data))
 
+    #Generate questions
     questions = generate_questions(description)
 
-    jobs[description_id] = {
-        "status": "Completed",
-        "results": {
-            "title": "Generic Job Title",
-            "description": description,
-            "questions": questions
-        }
+    # When questions are generated set status to completed and save them
+    job_data["status"] = "Completed"
+    job_data["results"] = {
+        "title": "Generic Job Title",
+        "description": description,
+        "questions": questions
     }
+
+    redis_conn.hset("jobs", description_id, json.dumps(job_data))
 
 @app.route('/api')
 def index():
@@ -60,20 +65,19 @@ def create_job():
 
     description_id = str(uuid.uuid4())
 
-    jobs[description_id] = {
-        "status": "Created",
-        "results": None
-    }
-
-    threading.Thread(target=process_job, args=(description_id, description)).start()
+    job_data = {"status": "Created", "results": None}
+    redis_conn.hset("jobs", description_id, json.dumps(job_data))
+    q.enqueue(generate_and_store_questions, description_id, description)
 
     return jsonify({"jobId": description_id})
 
 @app.route('/api/jobs/<job_id>', methods=['GET'])
 def get_job(job_id):
-    job = jobs.get(job_id)
-    if job:
-        return jsonify(job)
+    job_data_json = redis_conn.hget("jobs", job_id)
+
+    if job_data_json:
+        job_data = json.loads(job_data_json)
+        return jsonify(job_data)
     else:
         return jsonify({"error": "Job Description not found"}), 404
 
