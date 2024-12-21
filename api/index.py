@@ -1,14 +1,17 @@
 import os
 import uuid
-import asyncio
 
-
+from rq import Queue
+from redis import Redis
 from flask import Flask, request, jsonify
 from openai import OpenAI
 from dotenv import load_dotenv
 
 app = Flask(__name__)
 load_dotenv()
+
+redis_conn = Redis.from_url(os.getenv("REDIS_URL"))
+q = Queue("gpt_response", connection=redis_conn)
 
 jobs = {}
 
@@ -30,7 +33,7 @@ def generate_questions(job_description):
 
     return questions
 
-async def generate_and_store_questions(description_id, description):
+def generate_and_store_questions(description_id, description):
     questions = generate_questions(description)
     jobs[description_id]["status"] = "Completed"
     jobs[description_id]["results"] = {
@@ -58,7 +61,7 @@ async def create_job():
         "results": None
     }
 
-    await asyncio.create_task(generate_and_store_questions(description_id, description))
+    q.enqueue(generate_and_store_questions, description_id, description)
 
     return jsonify({"jobId": description_id})
 
