@@ -4,8 +4,9 @@
   "private": true,
   "scripts": {
     "flask-dev": "pip install -r requirements.txt && python -m flask --app api/index --debug run -p 5328",
+    "docker-dev": "docker build -t rq-worker-dev . && docker run --env-file .env rq-worker-dev",
     "next-dev": "next dev",
-    "dev": "concurrently \"npm run next-dev\" \"npm run flask-dev\"",
+    "dev": "concurrently \"npm run next-dev\" \"npm run flask-dev\" \"npm run docker-dev\"",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
