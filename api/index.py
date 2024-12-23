@@ -5,8 +5,9 @@ import uuid
 from rq import Queue
 from redis import Redis
 from flask import Flask, request, jsonify
-from openai import OpenAI
 from dotenv import load_dotenv
+
+from.prompting import generate_response
 
 app = Flask(__name__)
 load_dotenv()
@@ -14,40 +15,19 @@ load_dotenv()
 redis_conn = Redis.from_url(os.getenv("REDIS_URL"))
 q = Queue("gpt_response", connection=redis_conn)
 
-# Initialize OpenAI API client
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-
-
-def generate_questions(job_description):
-
-    response = client.chat.completions.create(
-        model="gpt-4o",
-        messages=[
-            {"role": "system", "content": "You are a highly skilled interview assistant. Your task is to analyze a job description and generate 5 behavioral questions and 5 technical questions (if applicable) tailored to help the user prepare effectively. Ensure the questions are diverse, relevant to the role, and encourage deep reflection or domain-specific thinking. Include examples where needed."},
-            {"role": "user", "content": f"Based on the following job description, generate interview questions:\n\n{job_description}\n\nFocus on behavioral questions that assess the candidate's soft skills, problem-solving abilities, and teamwork. For technical questions, ensure they align with the technical requirements mentioned. Please include a variety of topics covered in the description."}
-        ]
-    )
-
-    questions = response.choices[0].message.content
-
-    return questions
-
 def generate_and_store_questions(description_id, description):
     # Load job data and set status to processing
     job_data = json.loads(redis_conn.hget("jobs", description_id))
     job_data["status"] = "Processing"
     redis_conn.hset("jobs", description_id, json.dumps(job_data))
 
-    #Generate questions
-    questions = generate_questions(description)
+    #Generate response
+    response = generate_response(description)
 
-    # When questions are generated set status to completed and save them
+    # When response are generated set status to completed and save them
     job_data["status"] = "Completed"
-    job_data["results"] = {
-        "title": "Generic Job Title",
-        "description": description,
-        "questions": questions
-    }
+    job_data["results"] = response
+
     redis_conn.hset("jobs", description_id, json.dumps(job_data))
 
 @app.route('/api')
@@ -64,7 +44,10 @@ def create_job():
 
     description_id = str(uuid.uuid4())
 
-    job_data = {"status": "Created", "results": None}
+    job_data = {"status": "Created",
+                "description": description,
+                "results": None}
+
     redis_conn.hset("jobs", description_id, json.dumps(job_data))
     q.enqueue(generate_and_store_questions, description_id, description)
 

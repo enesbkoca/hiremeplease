@@ -7,10 +7,22 @@ import { PacmanLoader } from 'react-spinners';
 
 interface JobResponse {
     status: string;
+    description: string;
     results: {
-        title: string;
-        description: string;
-        questions: string;
+      job_title: string;
+      industry: string;
+      experience_level: string;
+      behavioral_questions: {
+        question: string;
+        category: string;
+        explanation: string;
+      }[];
+      technical_questions: {
+        question: string;
+        skill_area: string;
+        explanation: string;
+      }[];
+      additional_notes: string;
     } | null;
 }
 
@@ -90,8 +102,9 @@ export default function JobDisplay({ jobId }: { jobId: string }) {
         <>
             {jobDetails && (
                 <div className="mt-8 w-full max-w-3xl rounded-lg border border-gray-200 p-6 shadow-sm"> {/* Combined all styles into one div */}
-                    <JobDescriptionDisplay title={jobDetails.title} description={jobDetails.description} />
-                    <InterviewQuestionsList questions={jobDetails.questions} />
+                    <JobDescriptionDisplay title={jobDetails.job_title} description={jobResponse.description} />
+
+                    <InterviewQuestionsList behavioralQuestions={jobDetails.behavioral_questions} technicalQuestions={jobDetails.technical_questions} />
                 </div>
             )}
         </>

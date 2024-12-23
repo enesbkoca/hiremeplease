@@ -14,7 +14,7 @@ export const JobDescriptionDisplay: React.FC<JobDescriptionDisplayProps> = ({ ti
             </div>
 
             <div>
-                <h3 className="text-lg font-semibold text-gray-700">Job Description:</h3>
+                <h3 className="text-lg font-semibold text-gray-700">Description:</h3>
                 <p className="text-gray-600 leading-relaxed">{description}</p>
             </div>
         </div>

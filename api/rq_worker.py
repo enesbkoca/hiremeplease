@@ -3,7 +3,7 @@ import os
 from redis import Redis
 from rq import Worker
 from dotenv import load_dotenv
-from .index import generate_and_store_questions
+from .prompting import generate_response
 
 load_dotenv()
 
