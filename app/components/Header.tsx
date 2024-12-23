@@ -1,7 +1,15 @@
+'use client'
+
 import React from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation'
+
+import GoBackButton from "@/app/components/GoBackButton";
 
 const Header: React.FC = () => {
+    const pathname = usePathname()
+    const isJobDetailPage = pathname.startsWith('/job/');
+
     return (
         <header className="flex justify-between items-center w-full p-4">
             <Link href="/">
@@ -23,6 +31,7 @@ const Header: React.FC = () => {
                     <span className="font-semibold">Hire Me Please</span>
                 </div>
             </Link>
+            {isJobDetailPage && <GoBackButton />} {/* conditionally render go back button */}
         </header>
     );
 };
