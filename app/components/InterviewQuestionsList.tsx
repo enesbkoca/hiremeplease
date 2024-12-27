@@ -133,6 +133,7 @@ export const InterviewQuestionsList: React.FC<InterviewQuestionsListProps> = ({ 
                         >
                             Process Text
                         </button>
+                        <div className="text-center text-gray-600 my-2">OR</div>
                         {!showSplitButtons ? (
                             <button
                                 className="w-full bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition duration-200 mb-2"
