@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { InterviewQuestionsList } from "@/app/components/InterviewQuestionsList";
 import { JobDescriptionDisplay } from "@/app/components/JobDescriptionDisplay";
-import { PacmanLoader } from 'react-spinners';
+import { Loading } from "@/app/components/Loading";
 
 interface JobResponse {
     status: string;
@@ -84,12 +84,7 @@ export default function JobDisplay({ jobId }: { jobId: string }) {
     }
 
     if (isLoading) {
-        return (
-            <div className="flex flex-col items-center justify-center h-screen">
-                <PacmanLoader color="#36D7B7" size={50} />
-                {jobResponse?.status && <p className="mt-4 text-gray-600 font-bold">{jobResponse.status}</p>}
-            </div>
-        );
+        return <Loading status={jobResponse?.status} />;
     }
 
     if (!jobResponse) {
