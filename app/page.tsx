@@ -3,13 +3,12 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { JobDescriptionInput } from './components/JobDescriptionInput';
-import {Loading} from "@/app/components/Loading";
-
+import { useLoading } from '@/app/context/LoadingContext';
 
 export default function Home() {
     const router = useRouter();
     const [jobDescription, setJobDescription] = useState("");
-    const [isLoading, setIsLoading] = useState(false);
+    const { setIsLoading } = useLoading();
 
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -34,10 +33,6 @@ export default function Home() {
             console.error("jobDescription element not found in form.");
         }
     };
-
-    if (isLoading) {
-        return <Loading status={"Submitted"} />;
-    }
 
     return (
       <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-[70vh] p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">

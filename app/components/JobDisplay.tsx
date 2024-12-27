@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import {useState, useEffect } from 'react';
 import { InterviewQuestionsList } from "@/app/components/InterviewQuestionsList";
 import { JobDescriptionDisplay } from "@/app/components/JobDescriptionDisplay";
-import { Loading } from "@/app/components/Loading";
+import { useLoading } from '@/app/context/LoadingContext';
 
 interface JobResponse {
     status: string;
@@ -42,8 +42,8 @@ async function getJobDetails(jobId: string): Promise<JobResponse | null> {
 
 export default function JobDisplay({ jobId }: { jobId: string }) {
     const [jobResponse, setJobResponse] = useState<JobResponse | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const { setIsLoading } = useLoading()
 
     useEffect(() => {
         let timeoutId: NodeJS.Timeout | null = null;
@@ -55,10 +55,12 @@ export default function JobDisplay({ jobId }: { jobId: string }) {
                 if (isCancelled) return;
                 if (!response) {
                     setError("Job not found.");
-                    setIsLoading(false); // Stop loading if job not found
+                    setIsLoading(false);
                     return;
                 }
+
                 setJobResponse(response);
+
                 if (response.status !== "Completed") {
                     timeoutId = setTimeout(fetchJob, 2000);
                 } else {
@@ -67,7 +69,7 @@ export default function JobDisplay({ jobId }: { jobId: string }) {
             } catch (err) {
                 setError("Error fetching job.");
                 console.error(err);
-                setIsLoading(false); // Stop loading in case of error
+                setIsLoading(false);
             }
         };
 
@@ -83,22 +85,13 @@ export default function JobDisplay({ jobId }: { jobId: string }) {
         return <div>Error: {error}</div>;
     }
 
-    if (isLoading) {
-        return <Loading status={jobResponse?.status} />;
-    }
-
-    if (!jobResponse) {
-        return <div>Job not found</div>
-    }
-
-    const jobDetails = jobResponse.results;
+    const jobDetails = jobResponse?.results;
 
     return (
         <>
             {jobDetails && (
-                <div className="mt-8 w-full max-w-3xl rounded-lg border border-gray-200 p-6 shadow-sm"> {/* Combined all styles into one div */}
+                <div className="mt-8 w-full max-w-3xl rounded-lg border border-gray-200 p-6 shadow-sm">
                     <JobDescriptionDisplay title={jobDetails.job_title} description={jobResponse.description} />
-
                     <InterviewQuestionsList behavioralQuestions={jobDetails.behavioral_questions} technicalQuestions={jobDetails.technical_questions} />
                 </div>
             )}
