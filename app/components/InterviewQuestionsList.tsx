@@ -1,4 +1,7 @@
-import React, { useState } from 'react';
+import React, {useState, useRef} from 'react';
+import { ResultReason, SpeechRecognitionResult } from 'microsoft-cognitiveservices-speech-sdk';
+
+import * as speechsdk from 'microsoft-cognitiveservices-speech-sdk';
 
 interface InterviewQuestionsListProps {
     behavioralQuestions: { question: string; category: string; explanation: string; }[];
@@ -12,9 +15,13 @@ export const InterviewQuestionsList: React.FC<InterviewQuestionsListProps> = ({ 
     const [timerInterval, setTimerInterval] = useState<NodeJS.Timeout | null>(null); // Store the timer interval
     const [showSplitButtons, setShowSplitButtons] = useState<boolean>(false); // Track whether to show split buttons
     const [isProcessing, setIsProcessing] = useState<boolean>(false); // Track processing state
+    const [transcription, setTranscription] = useState<string>(''); // Store the transcribed text
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
+
 
     const handleQuestionClick = (question: string) => {
         setSelectedQuestion(question);
+        setTranscription('');
     };
 
     const handleBackgroundClick = () => {
@@ -26,10 +33,37 @@ export const InterviewQuestionsList: React.FC<InterviewQuestionsListProps> = ({ 
         e.stopPropagation(); // Prevent clicks inside the pop-up from closing it
     };
 
-    const startRecording = () => {
+    const startRecording = async () => {
         setIsRecording(true);
         setShowSplitButtons(false); // Ensure split buttons are hidden when starting over
+
+        const speechConfig = speechsdk.SpeechConfig.fromSubscription(
+            process.env.NEXT_PUBLIC_SPEECH_KEY as string,
+            process.env.NEXT_PUBLIC_SPEECH_REGION  as string
+        );
+        speechConfig.speechRecognitionLanguage = 'en-US';
+
+        const audioConfig = speechsdk.AudioConfig.fromDefaultMicrophoneInput();
+        const recognizer = new speechsdk.SpeechRecognizer(speechConfig, audioConfig);
+
+        recognizer.recognizeOnceAsync(async (result: SpeechRecognitionResult) => {
+            setIsRecording(false);
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                setTimerInterval(null);
+            }
+            setShowSplitButtons(true);
+
+            if (result.reason === ResultReason.RecognizedSpeech) {
+                setTranscription(result.text); // Update transcription state
+                console.log('Transcribed Text:', result.text);
+            } else {
+                console.log('ERROR: Speech was cancelled or could not be recognized.');
+            }
+        });
+
         // Start the timer
+        setTimer(0);
         const interval = setInterval(() => {
             setTimer((prevTimer) => prevTimer + 1);
         }, 1000);
@@ -48,6 +82,7 @@ export const InterviewQuestionsList: React.FC<InterviewQuestionsListProps> = ({ 
 
     const handleStartOver = () => {
         setTimer(0); // Reset the timer
+        setTranscription(''); // Clear transcription on start over
         startRecording(); // Start recording again
     };
 
@@ -56,6 +91,7 @@ export const InterviewQuestionsList: React.FC<InterviewQuestionsListProps> = ({ 
         console.log("Recording sent!");
         setShowSplitButtons(false); // Hide split buttons after sending
         setTimer(0); // Reset the timer
+        setTranscription('');
     };
 
     const handleRecordButtonClick = () => {
@@ -120,8 +156,10 @@ export const InterviewQuestionsList: React.FC<InterviewQuestionsListProps> = ({ 
                     >
                         <h3 className="text-lg font-semibold text-gray-700 mb-4">{selectedQuestion}</h3>
                         <textarea
+                            ref={textareaRef} // Attach ref to the textarea
                             className="w-full p-2 border border-gray-300 rounded-lg mb-4"
-                            placeholder="Answer by typing..."
+                            value={transcription}
+                            onChange={(e) => setTranscription(e.target.value)}
                             rows={4}
                         />
                         <button
