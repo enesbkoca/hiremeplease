@@ -8,6 +8,7 @@ import { useLoading } from '@/app/context/LoadingContext';
 interface JobResponse {
     status: string;
     description: string;
+    speech_token: string;
     results: {
       job_title: string;
       industry: string;
@@ -92,7 +93,11 @@ export default function JobDisplay({ jobId }: { jobId: string }) {
             {jobDetails && (
                 <div className="mt-8 w-full max-w-3xl rounded-lg border border-gray-200 p-6 shadow-sm">
                     <JobDescriptionDisplay title={jobDetails.job_title} description={jobResponse.description} />
-                    <InterviewQuestionsList behavioralQuestions={jobDetails.behavioral_questions} technicalQuestions={jobDetails.technical_questions} />
+                    <InterviewQuestionsList
+                        behavioralQuestions={jobDetails.behavioral_questions}
+                        technicalQuestions={jobDetails.technical_questions}
+                        speechToken={jobResponse.speech_token}
+                    />
                 </div>
             )}
         </>

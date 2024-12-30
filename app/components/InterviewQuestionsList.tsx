@@ -6,9 +6,10 @@ import * as speechsdk from 'microsoft-cognitiveservices-speech-sdk';
 interface InterviewQuestionsListProps {
     behavioralQuestions: { question: string; category: string; explanation: string; }[];
     technicalQuestions: { question: string; skill_area: string; explanation: string; }[];
+    speechToken: string;
 }
 
-export const InterviewQuestionsList: React.FC<InterviewQuestionsListProps> = ({ behavioralQuestions, technicalQuestions }) => {
+export const InterviewQuestionsList: React.FC<InterviewQuestionsListProps> = ({ behavioralQuestions, technicalQuestions, speechToken }) => {
     const [selectedQuestion, setSelectedQuestion] = useState<string | null>(null);
     const [isRecording, setIsRecording] = useState<boolean>(false); // Track recording state
     const [timer, setTimer] = useState<number>(0); // Track timer value
@@ -37,10 +38,10 @@ export const InterviewQuestionsList: React.FC<InterviewQuestionsListProps> = ({ 
         setIsRecording(true);
         setShowSplitButtons(false); // Ensure split buttons are hidden when starting over
 
-        const speechConfig = speechsdk.SpeechConfig.fromSubscription(
-            process.env.NEXT_PUBLIC_SPEECH_KEY as string,
-            process.env.NEXT_PUBLIC_SPEECH_REGION  as string
-        );
+        const speechConfig = speechsdk.SpeechConfig.fromAuthorizationToken(
+            speechToken,
+            process.env.NEXT_PUBLIC_SPEECH_REGION as string
+        )
         speechConfig.speechRecognitionLanguage = 'en-US';
 
         const audioConfig = speechsdk.AudioConfig.fromDefaultMicrophoneInput();

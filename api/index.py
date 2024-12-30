@@ -1,6 +1,7 @@
 import json
 import os
 import uuid
+import requests
 
 from rq import Queue
 from redis import Redis
@@ -57,8 +58,17 @@ def create_job():
 def get_job(job_id):
     job_data_json = redis_conn.hget("jobs", job_id)
 
+    headers = {
+        "Ocp-Apim-Subscription-Key": os.getenv("SPEECH_KEY"),
+        "Content-Type": "application/x-www-form-urlencoded",
+    }
+
+    token_url = f"https://{os.getenv("NEXT_PUBLIC_SPEECH_REGION")}.api.cognitive.microsoft.com/sts/v1.0/issueToken"
+    token_response = requests.post(token_url, headers=headers)
+
     if job_data_json:
         job_data = json.loads(job_data_json)
+        job_data["speech_token"] = token_response.text
         return jsonify(job_data)
     else:
         return jsonify({"error": "Job Description not found"}), 404
