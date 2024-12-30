@@ -1,12 +1,12 @@
 import React from 'react';
 
-interface UserDescriptionInputProp {
+interface UserInputProp {
     jobDescription: string;
     onJobDescriptionChange: (description: string) => void;
    handleSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
 }
 
-export const UserDescriptionInput: React.FC<UserDescriptionInputProp> = ({
+export const UserInput: React.FC<UserInputProp> = ({
                                                                             jobDescription,
                                                                             onJobDescriptionChange,
                                                                             handleSubmit

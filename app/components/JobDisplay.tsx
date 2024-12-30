@@ -1,9 +1,10 @@
 'use client';
 
 import {useState, useEffect } from 'react';
-import { InterviewQuestionsList } from "@/app/components/InterviewQuestionsList";
-import { JobDescriptionDisplay } from "@/app/components/JobDescriptionDisplay";
+
 import { useLoading } from '@/app/context/LoadingContext';
+import {Questions} from "@/app/components/Questions";
+import {JobDetails} from "@/app/components/JobDetails";
 
 interface JobResponse {
     status: string;
@@ -92,12 +93,12 @@ export default function JobDisplay({ jobId }: { jobId: string }) {
         <>
             {jobDetails && (
                 <div className="mt-8 w-full max-w-3xl rounded-lg border border-gray-200 p-6 shadow-sm">
-                    <JobDescriptionDisplay title={jobDetails.job_title} description={jobResponse.description} />
-                    <InterviewQuestionsList
+                    <JobDetails title={jobDetails.job_title} description={jobResponse.description} />
+                    <Questions
                         behavioralQuestions={jobDetails.behavioral_questions}
                         technicalQuestions={jobDetails.technical_questions}
                         speechToken={jobResponse.speech_token}
-                    />
+                        region={process.env.NEXT_PUBLIC_SPEECH_REGION as string} />
                 </div>
             )}
         </>

@@ -1,11 +1,11 @@
 import React from 'react';
 
-interface JobDescriptionDisplayProps {
+interface JobDetailsProps {
     title: string;
     description: string;
 }
 
-export const JobDescriptionDisplay: React.FC<JobDescriptionDisplayProps> = ({ title, description }) => {
+export const JobDetails: React.FC<JobDetailsProps> = ({ title, description }) => {
     return (
         <div className="mb-8">
             <div className="mb-4">

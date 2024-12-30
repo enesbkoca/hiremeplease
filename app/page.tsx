@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { UserDescriptionInput } from './components/UserDescriptionInput';
+import { UserInput } from './components/UserInput';
 import { useLoading } from '@/app/context/LoadingContext';
 
 export default function Home() {
@@ -43,7 +43,7 @@ export default function Home() {
             Enter the job description, and we will generate interview questions to help you prepare.
           </p>
 
-          <UserDescriptionInput
+          <UserInput
               jobDescription={jobDescription}
               onJobDescriptionChange={setJobDescription}
               handleSubmit={handleSubmit}
