@@ -1,4 +1,4 @@
-import JobDisplay from "@/app/components/JobDisplay";
+import QuestionsPage from "@/app/components/QuestionsPage";
 
 
 export default async function JobPage({ params }: { params: Promise<{ jobId: string }> }) {
@@ -6,7 +6,7 @@ export default async function JobPage({ params }: { params: Promise<{ jobId: str
 
     return (
         <div className="relative flex justify-center items-center">
-            <JobDisplay jobId={jobId}/>
+            <QuestionsPage jobId={jobId}/>
         </div>
     );
 }

@@ -1,5 +1,3 @@
-'use client';
-
 import { PacmanLoader } from 'react-spinners';
 
 interface LoadingProps {

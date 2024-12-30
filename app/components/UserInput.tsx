@@ -3,7 +3,7 @@ import React from 'react';
 interface UserInputProp {
     jobDescription: string;
     onJobDescriptionChange: (description: string) => void;
-   handleSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
+    handleSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
 }
 
 export const UserInput: React.FC<UserInputProp> = ({

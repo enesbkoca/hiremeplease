@@ -3,10 +3,10 @@
 import {useState, useEffect } from 'react';
 
 import { useLoading } from '@/app/context/LoadingContext';
-import {Questions} from "@/app/components/Questions";
-import {JobDetails} from "@/app/components/JobDetails";
+import { Questions } from "@/app/components/Questions";
+import { JobDetails } from "@/app/components/JobDetails";
 
-interface JobResponse {
+interface QuestionsResponse {
     status: string;
     description: string;
     speech_token: string;
@@ -28,7 +28,7 @@ interface JobResponse {
     } | null;
 }
 
-async function getJobDetails(jobId: string): Promise<JobResponse | null> {
+async function getJobDetails(jobId: string): Promise<QuestionsResponse | null> {
     try {
         const res = await fetch(`/api/jobs/${jobId}`);
 
@@ -42,8 +42,8 @@ async function getJobDetails(jobId: string): Promise<JobResponse | null> {
     }
 }
 
-export default function JobDisplay({ jobId }: { jobId: string }) {
-    const [jobResponse, setJobResponse] = useState<JobResponse | null>(null);
+export default function QuestionsPage({ jobId }: { jobId: string }) {
+    const [jobResponse, setJobResponse] = useState<QuestionsResponse | null>(null);
     const [error, setError] = useState<string | null>(null);
     const { setIsLoading } = useLoading()
 
