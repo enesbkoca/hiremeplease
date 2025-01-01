@@ -3,8 +3,7 @@ import {
     ResultReason,
     SpeechConfig,
     AudioConfig,
-    SpeechRecognizer,
-    Recognizer, SessionEventArgs
+    SpeechRecognizer
 } from 'microsoft-cognitiveservices-speech-sdk';
 import * as speechsdk from 'microsoft-cognitiveservices-speech-sdk';
 
