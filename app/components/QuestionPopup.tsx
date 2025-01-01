@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useSpeechRecognition } from '../useSpeechRecognition';
 
 interface QuestionPopupProps {
@@ -13,9 +13,19 @@ export const QuestionPopup: React.FC<QuestionPopupProps> = ({ question, onClose,
     const [timerInterval, setTimerInterval] = useState<NodeJS.Timeout | null>(null);
     const [showSplitButtons, setShowSplitButtons] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
-    const [transcription, setTranscription] = useState(''); // transcription state is here
-    const { isRecording, startRecording, stopRecording } = useSpeechRecognition(speechToken, region);
+    const { isRecording, startRecording, stopRecording, transcription: liveTranscription } = useSpeechRecognition(speechToken, region);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
+    const [finalTranscription, setFinalTranscription] = useState('');
+
+    useEffect(() => {
+        if (textareaRef.current) {
+            textareaRef.current.focus();
+        }
+    }, []);
+
+    useEffect(() => {
+        setFinalTranscription(liveTranscription);
+    }, [liveTranscription]);
 
     const handleRecordButtonClick = () => {
         if (isRecording) {
@@ -25,7 +35,7 @@ export const QuestionPopup: React.FC<QuestionPopupProps> = ({ question, onClose,
             setShowSplitButtons(true);
         } else {
             setTimer(0);
-            setTranscription('');
+            setFinalTranscription('');
             setShowSplitButtons(false);
             const interval = setInterval(() => {
                 setTimer((prevTimer) => prevTimer + 1);
@@ -33,25 +43,22 @@ export const QuestionPopup: React.FC<QuestionPopupProps> = ({ question, onClose,
             setTimerInterval(interval);
 
             startRecording((text) => {
-                setTranscription(text); // Set the transcription here, using the callback
-                clearInterval(timerInterval!);
-                setTimerInterval(null);
-                setShowSplitButtons(true);
+                // The transcription is handled in the useSpeechRecognition hook now
             });
         }
     };
 
     const handleStartOver = () => {
         setTimer(0);
-        setTranscription('');
+        setFinalTranscription('');
         handleRecordButtonClick();
     };
 
     const handleSendRecording = () => {
-        console.log("Recording sent!", transcription);
+        console.log("Recording sent!", finalTranscription);
         setShowSplitButtons(false);
         setTimer(0);
-        setTranscription('');
+        setFinalTranscription('');
     };
 
     const handleProcessText = () => {
@@ -71,8 +78,8 @@ export const QuestionPopup: React.FC<QuestionPopupProps> = ({ question, onClose,
                 <textarea
                     ref={textareaRef}
                     className="w-full p-2 border border-gray-300 rounded-lg mb-4"
-                    value={transcription}
-                    onChange={(e) => setTranscription(e.target.value)}
+                    value={finalTranscription}
+                    onChange={(e) => setFinalTranscription(e.target.value)}
                     rows={4}
                 />
                 <button
