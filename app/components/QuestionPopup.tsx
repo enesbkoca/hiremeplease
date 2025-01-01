@@ -11,11 +11,9 @@ interface QuestionPopupProps {
 export const QuestionPopup: React.FC<QuestionPopupProps> = ({ question, onClose, speechToken, region }) => {
     const [timer, setTimer] = useState(0);
     const [timerInterval, setTimerInterval] = useState<NodeJS.Timeout | null>(null);
-    const [showSplitButtons, setShowSplitButtons] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
-    const { isRecording, startRecording, stopRecording, transcription: liveTranscription } = useSpeechRecognition(speechToken, region);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
-    const [finalTranscription, setFinalTranscription] = useState('');
+    const { isRecording, startRecording, stopRecording, transcription, error } = useSpeechRecognition(speechToken, region);
 
     useEffect(() => {
         if (textareaRef.current) {
@@ -24,41 +22,33 @@ export const QuestionPopup: React.FC<QuestionPopupProps> = ({ question, onClose,
     }, []);
 
     useEffect(() => {
-        setFinalTranscription(liveTranscription);
-    }, [liveTranscription]);
-
-    const handleRecordButtonClick = () => {
         if (isRecording) {
-            stopRecording();
-            clearInterval(timerInterval!);
-            setTimerInterval(null);
-            setShowSplitButtons(true);
-        } else {
             setTimer(0);
-            setFinalTranscription('');
-            setShowSplitButtons(false);
             const interval = setInterval(() => {
                 setTimer((prevTimer) => prevTimer + 1);
             }, 1000);
             setTimerInterval(interval);
+        } else if (timerInterval) {
+            clearInterval(timerInterval);
+            setTimerInterval(null);
+        }
+    }, [isRecording]);
 
-            startRecording((text) => {
-                // The transcription is handled in the useSpeechRecognition hook now
-            });
+    const handleRecordButtonClick = () => {
+        if (isRecording) {
+            stopRecording();
+        } else {
+            startRecording();
         }
     };
 
     const handleStartOver = () => {
-        setTimer(0);
-        setFinalTranscription('');
-        handleRecordButtonClick();
+        startRecording();
     };
 
     const handleSendRecording = () => {
-        console.log("Recording sent!", finalTranscription);
-        setShowSplitButtons(false);
+        console.log("Recording sent!", transcription);
         setTimer(0);
-        setFinalTranscription('');
     };
 
     const handleProcessText = () => {
@@ -78,10 +68,11 @@ export const QuestionPopup: React.FC<QuestionPopupProps> = ({ question, onClose,
                 <textarea
                     ref={textareaRef}
                     className="w-full p-2 border border-gray-300 rounded-lg mb-4"
-                    value={finalTranscription}
-                    onChange={(e) => setFinalTranscription(e.target.value)}
+                    value={transcription}
+                    readOnly // Make it read-only as transcription is managed by the hook
                     rows={4}
                 />
+                {error && <div className="text-red-500 mb-2">{error}</div>} {/* Display error message */}
                 <button
                     className={`w-full ${isProcessing ? 'bg-blue-700' : 'bg-blue-500'} text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition duration-200 mb-2`}
                     onClick={handleProcessText}
@@ -90,21 +81,24 @@ export const QuestionPopup: React.FC<QuestionPopupProps> = ({ question, onClose,
                     Process Text
                 </button>
                 <div className="text-center text-gray-600 my-2">OR</div>
-                {!showSplitButtons ? (
+                {!isRecording ? (
                     <button className="w-full bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition duration-200 mb-2" onClick={handleRecordButtonClick}>
-                        {isRecording ? "Stop Recording" : "Start Recording"}
+                        Start Recording
                     </button>
                 ) : (
                     <div className="flex gap-2">
                         <button className="w-1/2 bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-600 transition duration-200" onClick={handleStartOver}>
                             Start Over
                         </button>
-                        <button className="w-1/2 bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600 transition duration-200" onClick={handleSendRecording}>
+                        <button className="w-1/2 bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600 transition duration-200" onClick={handleSendRecording} disabled={!transcription.trim()}>
                             Send Recording
+                        </button>
+                        <button className="w-1/2 bg-yellow-500 text-white py-2 px-4 rounded-lg hover:bg-yellow-600 transition duration-200" onClick={stopRecording}>
+                            Stop Recording
                         </button>
                     </div>
                 )}
-                {(isRecording || showSplitButtons) && (
+                {isRecording && (
                     <div className="text-center text-gray-600">
                         <p>Recording Time: {timer} seconds</p>
                     </div>

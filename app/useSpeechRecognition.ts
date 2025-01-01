@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { ResultReason, SpeechConfig, AudioConfig, SpeechRecognizer } from 'microsoft-cognitiveservices-speech-sdk';
 import * as speechsdk from 'microsoft-cognitiveservices-speech-sdk';
 
@@ -6,7 +6,7 @@ export const useSpeechRecognition = (speechToken: string, region: string) => {
     const [isRecording, setIsRecording] = useState(false);
     const [transcription, setTranscription] = useState('');
     const recognizerRef = useRef<speechsdk.SpeechRecognizer | null>(null);
-    const onResultRef = useRef<(text: string) => void>();
+    const [error, setError] = useState<string | null>(null); // Add error state
 
     useEffect(() => {
         return () => {
@@ -16,54 +16,53 @@ export const useSpeechRecognition = (speechToken: string, region: string) => {
         };
     }, []);
 
-    const startRecording = (onResult: (text: string) => void) => {
+    const startRecording = useCallback(() => {
         setIsRecording(true);
         setTranscription(''); // Clear previous transcription
-        onResultRef.current = onResult;
+        setError(null); // Clear any previous errors
 
         const speechConfig = SpeechConfig.fromAuthorizationToken(speechToken, region);
         speechConfig.speechRecognitionLanguage = 'en-US';
-
         const audioConfig = AudioConfig.fromDefaultMicrophoneInput();
         const recognizer = new SpeechRecognizer(speechConfig, audioConfig);
         recognizerRef.current = recognizer;
 
-        recognizer.recognized = (s, eventArgs) => {
+        recognizer.recognized = (_sender, eventArgs) => {
             if (eventArgs.result.reason === ResultReason.RecognizedSpeech) {
-                setTranscription(prevTranscription => prevTranscription + eventArgs.result.text + ' ');
-                if (onResultRef.current) {
-                    onResultRef.current(eventArgs.result.text);
-                }
+                setTranscription(prev => prev + eventArgs.result.text + ' ');
             } else if (eventArgs.result.reason === ResultReason.NoMatch) {
-                console.log("No speech could be recognized.");
+                console.warn("No speech could be recognized.");
             }
         };
 
-        recognizer.sessionStopped = (s, eventArgs) => {
-            console.log("\n    Session stopped event.");
+        recognizer.sessionStopped = (_sender, _eventArgs) => {
+            console.log("Continuous recognition session stopped.");
             setIsRecording(false);
-            recognizer.stopContinuousRecognitionAsync();
         };
 
-        recognizer.canceled = (s, eventArgs) => {
-            let message = `CANCELED: Reason=${eventArgs.reason}`;
-            if (eventArgs.errorDetails) {
-                message += ` ErrorDetails=${eventArgs.errorDetails}`;
-            }
-            console.log(message);
+        recognizer.canceled = (_sender, eventArgs) => {
             setIsRecording(false);
-            recognizer.stopContinuousRecognitionAsync();
+            const errorMessage = `Speech Recognition Canceled: Reason=${eventArgs.reason}, ErrorDetails=${eventArgs.errorDetails || 'N/A'}`;
+            console.error(errorMessage);
+            setError(errorMessage);
         };
 
-        recognizer.startContinuousRecognitionAsync();
-    };
+        try {
+            recognizer.startContinuousRecognitionAsync();
+        } catch (err) {
+            setIsRecording(false);
+            const errorMessage = `Error starting recognition: ${err}`;
+            console.error(errorMessage);
+            setError(errorMessage);
+        }
 
-    const stopRecording = async () => {
+    }, [region, speechToken]);
+
+    const stopRecording = useCallback(async () => {
         if (recognizerRef.current) {
             await recognizerRef.current.stopContinuousRecognitionAsync();
-            setIsRecording(false);
         }
-    };
+    }, []);
 
-    return { isRecording, startRecording, stopRecording, transcription };
+    return { isRecording, startRecording, stopRecording, transcription, error };
 };
