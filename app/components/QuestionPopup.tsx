@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useSpeechRecognition } from '../useSpeechRecognition';
+import { FaMicrophone, FaStop, FaKeyboard, FaRedo, FaPaperPlane } from 'react-icons/fa';
 
 interface QuestionPopupProps {
     question: string;
@@ -104,6 +105,13 @@ export const QuestionPopup: React.FC<QuestionPopupProps> = ({ question, onClose,
         return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
     };
 
+    const buttonBaseClasses = "w-full py-2 px-4 rounded-lg transition duration-200 flex items-center justify-center gap-2";
+    const primaryButtonClasses = `bg-blue-500 text-white hover:bg-blue-600 ${buttonBaseClasses}`;
+    const primaryButtonDisabledClasses = `bg-blue-300 text-white cursor-default ${buttonBaseClasses}`;
+    const secondaryButtonClasses = `bg-gray-300 text-gray-700 hover:bg-gray-400 ${buttonBaseClasses}`;
+    const dangerButtonClasses = `bg-red-500 text-white hover:bg-red-600 ${buttonBaseClasses}`;
+    const warningButtonClasses = `bg-yellow-500 text-white hover:bg-yellow-600 ${buttonBaseClasses}`;
+
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-10" onClick={onClose}>
             <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-6 rounded-lg shadow-lg w-11/12 max-w-md" onClick={(e) => e.stopPropagation()}>
@@ -131,61 +139,69 @@ export const QuestionPopup: React.FC<QuestionPopupProps> = ({ question, onClose,
 
                 {error && <div className="text-red-500 mb-2">{error}</div>}
 
-                {inputMethod === InputMethod.Text && transcription.trim().length > 0 && (
-                    <button
-                        className="w-full bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition duration-200 mb-2"
-                        onClick={handleSubmit}
-                    >
-                        Submit
-                    </button>
-                )}
-
-                {inputMethod === InputMethod.Voice && recordingState === RecordingState.Stopped && transcription.trim().length > 0 && (
-                    <button
-                        className="w-full bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition duration-200 mb-2"
-                        onClick={handleSubmit}
-                    >
-                        Submit
-                    </button>
-                )}
-
-                {inputMethod === InputMethod.Voice && recordingState === RecordingState.Initial && (
-                    <button className="w-full bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition duration-200 mb-2" onClick={handleRecordButtonClick}>
-                        Record Audio
-                    </button>
-                )}
-
-                {inputMethod === InputMethod.Voice && recordingState === RecordingState.Recording && (
-                    <div>
-                        <div className="text-center text-gray-600 mb-2">
-                            Time remaining: {formatTime(countdown)}
-                        </div>
-                        <button className="w-full bg-yellow-500 text-white py-2 px-4 rounded-lg hover:bg-yellow-600 transition duration-200" onClick={handleStopButtonClick}>
-                            Stop Recording
+                {inputMethod === InputMethod.Text && (
+                    <div className="mb-2"> {/* Added margin here */}
+                        <button
+                            className={transcription.trim().length > 0 ? primaryButtonClasses : primaryButtonDisabledClasses}
+                            onClick={handleSubmit}
+                            disabled={transcription.trim().length === 0}
+                        >
+                            <FaPaperPlane /> Submit
                         </button>
                     </div>
                 )}
 
                 {inputMethod === InputMethod.Voice && recordingState === RecordingState.Stopped && (
-                    <div className="flex gap-2">
-                        <button className="w-full bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-600 transition duration-200" onClick={handleReRecord}>
-                            Re-record
+                    <div className="mb-2"> {/* Added margin here */}
+                        <button className={primaryButtonClasses} onClick={handleSubmit}>
+                            <FaPaperPlane /> Submit
                         </button>
                     </div>
                 )}
 
                 {inputMethod === InputMethod.Voice && recordingState === RecordingState.Initial && (
-                    <button className="w-full bg-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-400 transition duration-200" onClick={handleEnterTextManually}>
-                        Enter Text Manually
-                    </button>
+                    <div className="mb-2"> {/* Added margin here */}
+                        <button className={primaryButtonClasses} onClick={handleRecordButtonClick}>
+                            <FaMicrophone /> Record Audio
+                        </button>
+                    </div>
+                )}
+
+                {inputMethod === InputMethod.Voice && recordingState === RecordingState.Recording && (
+                    <div className="mb-2"> {/* Added margin here */}
+                        <div className="text-center text-gray-600 mb-2">
+                            Time remaining: {formatTime(countdown)}
+                        </div>
+                        <button className={warningButtonClasses} onClick={handleStopButtonClick}>
+                            <FaStop /> Stop Recording
+                        </button>
+                    </div>
+                )}
+
+                {inputMethod === InputMethod.Voice && recordingState === RecordingState.Stopped && (
+                    <div className="flex gap-2 mb-2"> {/* Added margin here */}
+                        <button className={dangerButtonClasses} onClick={handleReRecord}>
+                            <FaRedo /> Re-record
+                        </button>
+                    </div>
+                )}
+
+                {inputMethod === InputMethod.Voice && recordingState === RecordingState.Initial && (
+                    <div className="mb-2"> {/* Added margin here */}
+                        <button className={secondaryButtonClasses} onClick={handleEnterTextManually}>
+                            <FaKeyboard /> Enter Text Manually
+                        </button>
+                    </div>
                 )}
 
                 {inputMethod === InputMethod.Text && (
-                    <button className="w-full bg-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-400 transition duration-200" onClick={handleUseVoiceInput}>
-                        Use Voice Input
-                    </button>
+                    <div className="mb-2"> {/* Added margin here */}
+                        <button className={secondaryButtonClasses} onClick={handleUseVoiceInput}>
+                            <FaMicrophone /> Use Voice Input
+                        </button>
+                    </div>
                 )}
             </div>
         </div>
     );
-};
+}
