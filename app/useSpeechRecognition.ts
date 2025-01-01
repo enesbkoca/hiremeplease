@@ -1,5 +1,11 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { ResultReason, SpeechConfig, AudioConfig, SpeechRecognizer } from 'microsoft-cognitiveservices-speech-sdk';
+import {
+    ResultReason,
+    SpeechConfig,
+    AudioConfig,
+    SpeechRecognizer,
+    Recognizer, SessionEventArgs
+} from 'microsoft-cognitiveservices-speech-sdk';
 import * as speechsdk from 'microsoft-cognitiveservices-speech-sdk';
 
 export const useSpeechRecognition = (speechToken: string, region: string) => {
@@ -35,8 +41,9 @@ export const useSpeechRecognition = (speechToken: string, region: string) => {
             }
         };
 
-        recognizer.sessionStopped = (_sender, _eventArgs) => {
+        recognizer.sessionStopped = (_sender, eventArgs) => {
             console.log("Continuous recognition session stopped.");
+            console.log(`Session id of event: ${eventArgs.sessionId}`)
             setIsRecording(false);
         };
 
