@@ -9,11 +9,13 @@ interface QuestionPopupProps {
 }
 
 export const QuestionPopup: React.FC<QuestionPopupProps> = ({ question, onClose, speechToken, region }) => {
-    const [timer, setTimer] = useState(0);
-    const [timerInterval, setTimerInterval] = useState<NodeJS.Timeout | null>(null);
+    const [countdown, setCountdown] = useState(0);
+    const [countdownInterval, setCountdownInterval] = useState<NodeJS.Timeout | null>(null);
     const [isProcessing, setIsProcessing] = useState(false);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
-    const { isRecording, startRecording, stopRecording, transcription, error } = useSpeechRecognition(speechToken, region);
+    const { isRecording, startRecording, stopRecording, transcription, setTranscription, error } = useSpeechRecognition(speechToken, region);
+
+    const totalCountdownTime = 120; // 2 minutes countdown time
 
     useEffect(() => {
         if (textareaRef.current) {
@@ -23,16 +25,29 @@ export const QuestionPopup: React.FC<QuestionPopupProps> = ({ question, onClose,
 
     useEffect(() => {
         if (isRecording) {
-            setTimer(0);
+            setCountdown(totalCountdownTime);
             const interval = setInterval(() => {
-                setTimer((prevTimer) => prevTimer + 1);
+                setCountdown((prevCountdown) => {
+                    if (prevCountdown <= 1) {
+                        clearInterval(interval);
+                        setCountdownInterval(null);
+                        stopRecording();
+                        return 0;
+                    }
+                    return prevCountdown - 1;
+                });
             }, 1000);
-            setTimerInterval(interval);
-        } else if (timerInterval) {
-            clearInterval(timerInterval);
-            setTimerInterval(null);
+            setCountdownInterval(interval);
+        } else if (countdownInterval) {
+            clearInterval(countdownInterval);
+            setCountdownInterval(null);
         }
-    }, [isRecording]);
+        return () => {
+            if (countdownInterval) {
+                clearInterval(countdownInterval);
+            }
+        };
+    }, [isRecording, stopRecording]);
 
     const handleRecordButtonClick = () => {
         if (isRecording) {
@@ -48,7 +63,6 @@ export const QuestionPopup: React.FC<QuestionPopupProps> = ({ question, onClose,
 
     const handleSendRecording = () => {
         console.log("Recording sent!", transcription);
-        setTimer(0);
     };
 
     const handleProcessText = () => {
@@ -61,6 +75,12 @@ export const QuestionPopup: React.FC<QuestionPopupProps> = ({ question, onClose,
         }
     };
 
+    const formatTime = (seconds: number) => {
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = seconds % 60;
+        return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+    };
+
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-10" onClick={onClose}>
             <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-6 rounded-lg shadow-lg w-11/12 max-w-md" onClick={(e) => e.stopPropagation()}>
@@ -69,10 +89,10 @@ export const QuestionPopup: React.FC<QuestionPopupProps> = ({ question, onClose,
                     ref={textareaRef}
                     className="w-full p-2 border border-gray-300 rounded-lg mb-4"
                     value={transcription}
-                    readOnly // Make it read-only as transcription is managed by the hook
+                    onChange={(e) => setTranscription(e.target.value)}
                     rows={4}
                 />
-                {error && <div className="text-red-500 mb-2">{error}</div>} {/* Display error message */}
+                {error && <div className="text-red-500 mb-2">{error}</div>}
                 <button
                     className={`w-full ${isProcessing ? 'bg-blue-700' : 'bg-blue-500'} text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition duration-200 mb-2`}
                     onClick={handleProcessText}
@@ -87,20 +107,20 @@ export const QuestionPopup: React.FC<QuestionPopupProps> = ({ question, onClose,
                     </button>
                 ) : (
                     <div className="flex gap-2">
-                        <button className="w-1/2 bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-600 transition duration-200" onClick={handleStartOver}>
+                        <button className="w-1/3 bg-red-500 text-white py-2 px-4 rounded-lg hover:bg-red-600 transition duration-200" onClick={handleStartOver}>
                             Start Over
                         </button>
-                        <button className="w-1/2 bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600 transition duration-200" onClick={handleSendRecording} disabled={!transcription.trim()}>
+                        <button className="w-1/3 bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600 transition duration-200" onClick={handleSendRecording} disabled={!transcription.trim()}>
                             Send Recording
                         </button>
-                        <button className="w-1/2 bg-yellow-500 text-white py-2 px-4 rounded-lg hover:bg-yellow-600 transition duration-200" onClick={stopRecording}>
+                        <button className="w-1/3 bg-yellow-500 text-white py-2 px-4 rounded-lg hover:bg-yellow-600 transition duration-200" onClick={stopRecording}>
                             Stop Recording
                         </button>
                     </div>
                 )}
                 {isRecording && (
                     <div className="text-center text-gray-600">
-                        <p>Recording Time: {timer} seconds</p>
+                        <p>Time remaining: {formatTime(countdown)}</p>
                     </div>
                 )}
             </div>

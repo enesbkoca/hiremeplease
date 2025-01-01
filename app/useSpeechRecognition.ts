@@ -6,7 +6,7 @@ export const useSpeechRecognition = (speechToken: string, region: string) => {
     const [isRecording, setIsRecording] = useState(false);
     const [transcription, setTranscription] = useState('');
     const recognizerRef = useRef<speechsdk.SpeechRecognizer | null>(null);
-    const [error, setError] = useState<string | null>(null); // Add error state
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         return () => {
@@ -18,8 +18,8 @@ export const useSpeechRecognition = (speechToken: string, region: string) => {
 
     const startRecording = useCallback(() => {
         setIsRecording(true);
-        setTranscription(''); // Clear previous transcription
-        setError(null); // Clear any previous errors
+        setTranscription('');
+        setError(null);
 
         const speechConfig = SpeechConfig.fromAuthorizationToken(speechToken, region);
         speechConfig.speechRecognitionLanguage = 'en-US';
@@ -64,5 +64,5 @@ export const useSpeechRecognition = (speechToken: string, region: string) => {
         }
     }, []);
 
-    return { isRecording, startRecording, stopRecording, transcription, error };
+    return { isRecording, startRecording, stopRecording, transcription, setTranscription, error };
 };
