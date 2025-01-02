@@ -22,8 +22,11 @@ export const Questions: React.FC<QuestionsProps> = ({ behavioralQuestions, techn
 
     return (
         <div className="relative">
-            <QuestionList questions={behavioralQuestions} onQuestionClick={handleQuestionClick} title="Behavioral Questions" />
-            <QuestionList questions={technicalQuestions} onQuestionClick={handleQuestionClick} title="Technical Questions" />
+            <QuestionList questions={behavioralQuestions} onQuestionClick={handleQuestionClick}
+                          title="Behavioral Questions"/>
+            <br/>
+            <QuestionList questions={technicalQuestions} onQuestionClick={handleQuestionClick}
+                          title="Technical Questions"/>
 
             {selectedQuestion && (<QuestionPopup
                     question={selectedQuestion}
