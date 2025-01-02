@@ -85,3 +85,48 @@ Ensure the response is well-structured, valid JSON, and can be directly parsed b
     except Exception as e:
         print(f"An unexpected error occurred: {e}")
         pass
+    
+def generate_answer_analysis(answer_text):
+    
+    prompt = {
+        "role": "system",
+        "content": """You are an interview analyst. Analyze the given answer and provide feedback on the user's interview answer using the following structured format:
+        
+        Summary of Strengths: Highlight the key strengths in the user's response, such as clarity, relevance, or effective communication.
+        Areas for Improvement: Identify aspects where the user can improve, such as content depth, structure, or delivery.
+        Specific Suggestions: Offer clear and actionable suggestions to address the areas for improvement, ensuring they are practical and tailored to the user's needs.
+        Practice Exercises (if applicable): Suggest exercises or additional practice opportunities that can help the user enhance their skills in the identified areas.
+        Encouragement: Conclude with encouraging remarks to motivate the user and reinforce their capabilities.
+        
+        In your analysis, consider the content and relevance, structure, delivery, behavioral insights, and technical depth of the answer, depending on the type of question asked.
+        Ensure the feedback is concise, focused, and delivered in a supportive manner to foster the user's growth and confidence in interview settings.
+        
+        Generate a JSON response with the following structure and data types:
+        
+        {
+        "Summary of Strengths": "string",
+        "Areas for Improvement": "string",
+        "Specific Suggestions": ["string"],
+        "Practice Exercises": ["string"],
+        "Encouragement": "string"
+        }
+        
+        Populate the fields with relevant feedback based on the user's answer. Output only the JSON object without any additional text."""
+    }
+
+    user_message = {"role": "user", "content": answer_text}
+
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4",
+            messages=[prompt, user_message],
+            temperature=0.2
+        )
+    
+        # Log the response content to the console
+        print(f"RESPONSE FOR ANSWER ANALYSIS: {response.choices[0].message.content}")
+        
+        return response.choices[0].message.content
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return None

@@ -8,7 +8,7 @@ from redis import Redis
 from flask import Flask, request, jsonify
 from dotenv import load_dotenv
 
-from.prompting import generate_response
+from.prompting import generate_response, generate_answer_analysis
 
 app = Flask(__name__)
 load_dotenv()
@@ -63,7 +63,9 @@ def get_job(job_id):
         "Content-Type": "application/x-www-form-urlencoded",
     }
 
-    token_url = f"https://{os.getenv("NEXT_PUBLIC_SPEECH_REGION")}.api.cognitive.microsoft.com/sts/v1.0/issueToken"
+    # token_url = f"https://{os.getenv('NEXT_PUBLIC_SPEECH_REGION')}.api.cognitive.microsoft.com/sts/v1.0/issueToken"
+    token_url = f"https://westeurope.api.cognitive.microsoft.com/sts/v1.0/issueToken"
+    
     token_response = requests.post(token_url, headers=headers)
 
     if job_data_json:
@@ -72,6 +74,21 @@ def get_job(job_id):
         return jsonify(job_data)
     else:
         return jsonify({"error": "Job Description not found"}), 404
+
+@app.route('/api/analyze-answer', methods=['POST'])
+def analyze_answer():
+    data = request.json
+    answer_text = data.get("answer_text")
+
+    if not answer_text:
+        return jsonify({"error": "Answer text is required"}), 400
+
+    analysis = generate_answer_analysis(answer_text)
+
+    if analysis:
+        return jsonify({"analysis": analysis})
+    else:
+        return jsonify({"error": "Failed to generate analysis"}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)
