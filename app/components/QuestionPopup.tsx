@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useSpeechRecognition } from '../useSpeechRecognition';
+import axios from 'axios';
 import { FaMicrophone, FaStop, FaKeyboard, FaRedo, FaPaperPlane } from 'react-icons/fa';
 
 interface QuestionPopupProps {
@@ -20,6 +21,14 @@ enum InputMethod {
     Text,
 }
 
+interface AnalysisResponse {
+    'Summary of Strengths': string;
+    'Areas for Improvement': string;
+    'Specific Suggestions': string[];
+    'Practice Exercises': string[];
+    'Encouragement': string;
+}
+
 export const QuestionPopup: React.FC<QuestionPopupProps> = ({ question, onClose, speechToken, region }) => {
     const [countdown, setCountdown] = useState(0);
     const [countdownInterval, setCountdownInterval] = useState<NodeJS.Timeout | null>(null);
@@ -27,8 +36,18 @@ export const QuestionPopup: React.FC<QuestionPopupProps> = ({ question, onClose,
     const { isRecording, startRecording, stopRecording, transcription, setTranscription, error } = useSpeechRecognition(speechToken, region);
     const [recordingState, setRecordingState] = useState<RecordingState>(RecordingState.Initial);
     const [inputMethod, setInputMethod] = useState<InputMethod>(InputMethod.Voice);
+    const [response, setResponse] = useState<AnalysisResponse | null>(null);
+    const [apiError, setApiError] = useState<string | null>(null);
 
     const totalCountdownTime = 120;
+
+    // Disable background scrolling when the popup is open
+    useEffect(() => {
+        document.body.style.overflow = 'hidden';
+        return () => {
+            document.body.style.overflow = 'auto';
+        };
+    }, []);
 
     useEffect(() => {
         if (textareaRef.current) {
@@ -84,9 +103,22 @@ export const QuestionPopup: React.FC<QuestionPopupProps> = ({ question, onClose,
         setInputMethod(InputMethod.Voice);
     };
 
-    const handleSubmit = () => {
-        console.log("Submitting text:", transcription);
-        // TODO: Submit logic comes here
+    const handleSubmit = async () => {
+        const answerText = transcription.trim();
+        if (answerText === '') {
+            alert('Please enter or record your answer.');
+            return;
+        }
+
+        try {
+            const res = await axios.post('/api/analyze-answer', { answer_text: answerText });
+            const parsedResponse: AnalysisResponse = JSON.parse(res.data.analysis);
+            setResponse(parsedResponse);
+            setApiError(null);
+        } catch (err) {
+            console.error('API call failed:', err);
+            setApiError('Failed to analyze answer. Please try again.');
+        }
     };
 
     const handleEnterTextManually = () => {
@@ -114,7 +146,7 @@ export const QuestionPopup: React.FC<QuestionPopupProps> = ({ question, onClose,
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-10" onClick={onClose}>
-            <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-6 rounded-lg shadow-lg w-11/12 max-w-md" onClick={(e) => e.stopPropagation()}>
+            <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-6 rounded-lg shadow-lg w-11/12 max-w-md max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
                 <h3 className="text-lg font-semibold text-gray-700 mb-4">{question}</h3>
 
                 {inputMethod === InputMethod.Text && (
@@ -137,10 +169,46 @@ export const QuestionPopup: React.FC<QuestionPopupProps> = ({ question, onClose,
                     />
                 )}
 
-                {error && <div className="text-red-500 mb-2">{error}</div>}
+                {response && (
+                    <div className="mb-4">
+                        <h4 className="text-md font-semibold text-gray-700">Analysis:</h4>
+                        <div className="space-y-4">
+                            <div>
+                                <h5 className="font-semibold text-gray-700">Summary of Strengths:</h5>
+                                <p className="text-gray-600">{response['Summary of Strengths']}</p>
+                            </div>
+                            <div>
+                                <h5 className="font-semibold text-gray-700">Areas for Improvement:</h5>
+                                <p className="text-gray-600">{response['Areas for Improvement']}</p>
+                            </div>
+                            <div>
+                                <h5 className="font-semibold text-gray-700">Specific Suggestions:</h5>
+                                <ul className="list-disc pl-6 text-gray-600">
+                                    {response['Specific Suggestions'].map((suggestion, index) => (
+                                        <li key={index}>{suggestion}</li>
+                                    ))}
+                                </ul>
+                            </div>
+                            <div>
+                                <h5 className="font-semibold text-gray-700">Practice Exercises:</h5>
+                                <ul className="list-disc pl-6 text-gray-600">
+                                    {response['Practice Exercises'].map((exercise, index) => (
+                                        <li key={index}>{exercise}</li>
+                                    ))}
+                                </ul>
+                            </div>
+                            <div>
+                                <h5 className="font-semibold text-gray-700">Encouragement:</h5>
+                                <p className="text-gray-600">{response['Encouragement']}</p>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {apiError && <p className="text-red-500 text-sm mt-2">{apiError}</p>}
 
                 {inputMethod === InputMethod.Text && (
-                    <div className="mb-2"> {/* Added margin here */}
+                    <div className="mb-2">
                         <button
                             className={transcription.trim().length > 0 ? primaryButtonClasses : primaryButtonDisabledClasses}
                             onClick={handleSubmit}
@@ -152,7 +220,7 @@ export const QuestionPopup: React.FC<QuestionPopupProps> = ({ question, onClose,
                 )}
 
                 {inputMethod === InputMethod.Voice && recordingState === RecordingState.Stopped && (
-                    <div className="mb-2"> {/* Added margin here */}
+                    <div className="mb-2">
                         <button className={primaryButtonClasses} onClick={handleSubmit}>
                             <FaPaperPlane /> Submit
                         </button>
@@ -160,7 +228,7 @@ export const QuestionPopup: React.FC<QuestionPopupProps> = ({ question, onClose,
                 )}
 
                 {inputMethod === InputMethod.Voice && recordingState === RecordingState.Initial && (
-                    <div className="mb-2"> {/* Added margin here */}
+                    <div className="mb-2">
                         <button className={primaryButtonClasses} onClick={handleRecordButtonClick}>
                             <FaMicrophone /> Record Audio
                         </button>
@@ -168,7 +236,7 @@ export const QuestionPopup: React.FC<QuestionPopupProps> = ({ question, onClose,
                 )}
 
                 {inputMethod === InputMethod.Voice && recordingState === RecordingState.Recording && (
-                    <div className="mb-2"> {/* Added margin here */}
+                    <div className="mb-2">
                         <div className="text-center text-gray-600 mb-2">
                             Time remaining: {formatTime(countdown)}
                         </div>
@@ -179,7 +247,7 @@ export const QuestionPopup: React.FC<QuestionPopupProps> = ({ question, onClose,
                 )}
 
                 {inputMethod === InputMethod.Voice && recordingState === RecordingState.Stopped && (
-                    <div className="flex gap-2 mb-2"> {/* Added margin here */}
+                    <div className="flex gap-2 mb-2">
                         <button className={dangerButtonClasses} onClick={handleReRecord}>
                             <FaRedo /> Re-record
                         </button>
@@ -187,7 +255,7 @@ export const QuestionPopup: React.FC<QuestionPopupProps> = ({ question, onClose,
                 )}
 
                 {inputMethod === InputMethod.Voice && recordingState === RecordingState.Initial && (
-                    <div className="mb-2"> {/* Added margin here */}
+                    <div className="mb-2">
                         <button className={secondaryButtonClasses} onClick={handleEnterTextManually}>
                             <FaKeyboard /> Enter Text Manually
                         </button>
@@ -195,7 +263,7 @@ export const QuestionPopup: React.FC<QuestionPopupProps> = ({ question, onClose,
                 )}
 
                 {inputMethod === InputMethod.Text && (
-                    <div className="mb-2"> {/* Added margin here */}
+                    <div className="mb-2">
                         <button className={secondaryButtonClasses} onClick={handleUseVoiceInput}>
                             <FaMicrophone /> Use Voice Input
                         </button>
@@ -204,4 +272,4 @@ export const QuestionPopup: React.FC<QuestionPopupProps> = ({ question, onClose,
             </div>
         </div>
     );
-}
+};
