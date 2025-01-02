@@ -169,6 +169,8 @@ export const QuestionPopup: React.FC<QuestionPopupProps> = ({ question, onClose,
                     />
                 )}
 
+                {error && <div className="text-red-500 mb-2">{error}</div>}
+
                 {response && (
                     <div className="mb-4">
                         <h4 className="text-md font-semibold text-gray-700">Analysis:</h4>

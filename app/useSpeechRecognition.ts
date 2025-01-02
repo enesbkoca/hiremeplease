@@ -11,7 +11,7 @@ export const useSpeechRecognition = (speechToken: string, region: string) => {
     const [isRecording, setIsRecording] = useState(false);
     const [transcription, setTranscription] = useState('');
     const recognizerRef = useRef<speechsdk.SpeechRecognizer | null>(null);
-    const [error, setError] = useState<string | null>(null);
+    const [transcriptionError, setTranscriptionError] = useState<string | null>(null);
 
     useEffect(() => {
         return () => {
@@ -24,7 +24,7 @@ export const useSpeechRecognition = (speechToken: string, region: string) => {
     const startRecording = useCallback(() => {
         setIsRecording(true);
         setTranscription('');
-        setError(null);
+        setTranscriptionError(null);
 
         const speechConfig = SpeechConfig.fromAuthorizationToken(speechToken, region);
         speechConfig.speechRecognitionLanguage = 'en-US';
@@ -50,7 +50,7 @@ export const useSpeechRecognition = (speechToken: string, region: string) => {
             setIsRecording(false);
             const errorMessage = `Speech Recognition Canceled: Reason=${eventArgs.reason}, ErrorDetails=${eventArgs.errorDetails || 'N/A'}`;
             console.error(errorMessage);
-            setError(errorMessage);
+            setTranscriptionError(errorMessage);
         };
 
         try {
@@ -59,7 +59,7 @@ export const useSpeechRecognition = (speechToken: string, region: string) => {
             setIsRecording(false);
             const errorMessage = `Error starting recognition: ${err}`;
             console.error(errorMessage);
-            setError(errorMessage);
+            setTranscriptionError(errorMessage);
         }
 
     }, [region, speechToken]);
@@ -70,5 +70,5 @@ export const useSpeechRecognition = (speechToken: string, region: string) => {
         }
     }, []);
 
-    return { isRecording, startRecording, stopRecording, transcription, setTranscription, error };
+    return { isRecording, startRecording, stopRecording, transcription, setTranscription, error: transcriptionError };
 };
