@@ -36,9 +36,9 @@ const QuestionList: React.FC<QuestionListProps> = ({
                         onMouseLeave={() => setHoveredIndex(null)}
                     >
                         <p className="font-semibold">{question.question}</p>
-                        {/*{question.category && <p className="text-sm text-gray-500">Category: {question.category}</p>}*/}
-                        {/*{question.skill_area && <p className="text-sm text-gray-500">Skill Area: {question.skill_area}</p>}*/}
-                        {/*<p className="text-sm text-gray-500">Explanation: {question.explanation}</p>*/}
+                        {question.category && <p className="text-sm text-gray-500">Category: {question.category}</p>}
+                        {question.skill_area && <p className="text-sm text-gray-500">Skill Area: {question.skill_area}</p>}
+                        <p className="text-sm text-gray-500">Explanation: {question.explanation}</p>
                     </div>
                 ))}
             </div>
