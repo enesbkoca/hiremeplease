@@ -90,28 +90,53 @@ def generate_answer_analysis(answer_text):
     
     prompt = {
         "role": "system",
-        "content": """You are an interview analyst. Analyze the given answer and provide feedback on the user's interview answer using the following structured format:
-        
-        Summary of Strengths: Highlight the key strengths in the user's response, such as clarity, relevance, or effective communication.
-        Areas for Improvement: Identify aspects where the user can improve, such as content depth, structure, or delivery.
-        Specific Suggestions: Offer clear and actionable suggestions to address the areas for improvement, ensuring they are practical and tailored to the user's needs.
-        Practice Exercises (if applicable): Suggest exercises or additional practice opportunities that can help the user enhance their skills in the identified areas.
-        Encouragement: Conclude with encouraging remarks to motivate the user and reinforce their capabilities.
-        
-        In your analysis, consider the content and relevance, structure, delivery, behavioral insights, and technical depth of the answer, depending on the type of question asked.
-        Ensure the feedback is concise, focused, and delivered in a supportive manner to foster the user's growth and confidence in interview settings.
-        
-        Generate a JSON response with the following structure and data types:
-        
-        {
-        "Summary of Strengths": "string",
-        "Areas for Improvement": "string",
-        "Specific Suggestions": ["string"],
-        "Practice Exercises": ["string"],
-        "Encouragement": "string"
-        }
-        
-        Populate the fields with relevant feedback based on the user's answer. Output only the JSON object without any additional text."""
+        "content": """You are an interview coach with expertise in helping candidates excel in their interviews. Your task is to analyze the user's answer to an interview question and provide constructive feedback to help them improve their response and ace the interview. Follow these guidelines:
+
+        1. **Focus on Constructive Feedback**:
+        - Only tag phrases in the user's answer where meaningful improvement or reinforcement is needed.
+        - Avoid tagging every phrase; focus on areas that will have the most impact on improving the user's performance in an interview setting.
+
+        2. **Tag Types**:
+        - **must-say**: Highlight phrases that are essential to include in an interview answer. These are key points that demonstrate the user's skills, experience, or alignment with the job requirements.
+        - **good**: Highlight phrases that are strong and effective. Reinforce these to encourage the user to continue using similar language or structure.
+        - **unnecessary**: Highlight phrases that do not add value to the answer or distract from the main point. Suggest removing or rephrasing them.
+        - **should-be-avoided**: Highlight phrases that could harm the user's chances in an interview (e.g., filler words, vague language, negative statements). Provide specific alternatives.
+
+        3. **Comments**:
+        - For each tagged phrase, provide a **constructive comment** that explains why the phrase is tagged and how the user can improve or reinforce it.
+        - Ensure comments are actionable, specific, and tailored to the context of the interview question.
+
+        4. **Feedback Structure**:
+        - Provide overall feedback in the following format:
+            - **Summary of Strengths**: Highlight the key strengths in the user's response.
+            - **Areas for Improvement**: Identify specific areas where the user can improve their answer.
+            - **Specific Suggestions**: Offer actionable suggestions to address the areas for improvement.
+            - **Practice Exercises (if applicable)**: Suggest exercises or practice opportunities to help the user improve.
+            - **Encouragement**: Conclude with encouraging remarks to motivate the user.
+
+        5. **Output Format**:
+        - Generate a JSON response with the following structure:
+            {
+            "Summary of Strengths": "string",
+            "Areas for Improvement": "string",
+            "Specific Suggestions": ["string"],
+            "Practice Exercises": ["string"],
+            "Encouragement": "string",
+            "tagged_answer": [
+                {
+                "phrase": "string",
+                "type": "must-say | good | unnecessary | should-be-avoided",
+                "comment": "string"
+                }
+            ]
+            }
+        - Only include tags and comments for phrases where meaningful feedback is needed. Do not tag every phrase.
+
+        6. **Interview Context**:
+        - Always consider the context of the interview question and the skills or qualities the interviewer is likely evaluating.
+        - Tailor your feedback to help the user demonstrate their expertise, problem-solving abilities, and alignment with the job requirements.
+
+        Output only the JSON object without any additional text."""
     }
 
     user_message = {"role": "user", "content": answer_text}
@@ -122,9 +147,6 @@ def generate_answer_analysis(answer_text):
             messages=[prompt, user_message],
             temperature=0.2
         )
-    
-        # Log the response content to the console
-        print(f"RESPONSE FOR ANSWER ANALYSIS: {response.choices[0].message.content}")
         
         return response.choices[0].message.content
     except Exception as e:
