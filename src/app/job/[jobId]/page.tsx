@@ -5,8 +5,8 @@ export default async function JobPage({ params }: { params: Promise<{ jobId: str
     const { jobId } = await params;
 
     return (
-        <div className="flex justify-center items-center h-full w-full">
+        <main className="w-full flex justify-center">
             <QuestionsPage jobId={jobId}/>
-        </div>
+        </main>
     );
 }
