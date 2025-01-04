@@ -5,7 +5,7 @@ export default async function JobPage({ params }: { params: Promise<{ jobId: str
     const { jobId } = await params;
 
     return (
-        <div className="relative flex justify-center items-center">
+        <div className="flex justify-center items-center h-full w-full">
             <QuestionsPage jobId={jobId}/>
         </div>
     );
