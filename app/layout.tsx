@@ -6,6 +6,9 @@ import { Analytics } from '@vercel/analytics/react';
 import Header from './components/Header';
 import Footer from './components/Footer';
 
+import { LoadingProvider } from './context/LoadingContext';
+import RouteChangeHandler from './components/RouteChangeHandler';
+
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
   variable: "--font-geist-sans",
@@ -30,14 +33,18 @@ export default function RootLayout({
     return (
         <html lang="en">
         <body className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen`}>
-        <Header />
-        <main className="flex-grow">
-            {children}
-        </main>
-        <Footer />
-        <div className="analyticsComponent">
-            <Analytics />
-        </div>
+        <LoadingProvider>
+            <Header />
+            <main className="flex-grow">
+                <RouteChangeHandler>
+                    {children}
+                </RouteChangeHandler>
+            </main>
+            <Footer />
+            <div className="analyticsComponent">
+                <Analytics />
+            </div>
+        </LoadingProvider>
         </body>
         </html>
     );

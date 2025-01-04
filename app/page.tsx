@@ -2,15 +2,19 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { JobDescriptionInput } from './components/JobDescriptionInput';
-
+import { UserInput } from './components/UserInput';
+import { useLoading } from '@/app/context/LoadingContext';
 
 export default function Home() {
     const router = useRouter();
     const [jobDescription, setJobDescription] = useState("");
+    const { setIsLoading } = useLoading();
+
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
+
+        setIsLoading(true);
 
         if (e.currentTarget.elements && "jobDescription" in e.currentTarget.elements) {
             const jobDescriptionElement = e.currentTarget.elements.jobDescription as HTMLTextAreaElement;
@@ -39,7 +43,7 @@ export default function Home() {
             Enter the job description, and we will generate interview questions to help you prepare.
           </p>
 
-          <JobDescriptionInput
+          <UserInput
               jobDescription={jobDescription}
               onJobDescriptionChange={setJobDescription}
               handleSubmit={handleSubmit}
