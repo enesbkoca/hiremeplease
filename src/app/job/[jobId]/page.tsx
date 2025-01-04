@@ -1,4 +1,4 @@
-import QuestionsPage from "@/app/components/QuestionsPage";
+import QuestionsPage from "@/components/QuestionsPage";
 
 
 export default async function JobPage({ params }: { params: Promise<{ jobId: string }> }) {

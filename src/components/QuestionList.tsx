@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import '@/app/styles.css';
+import '@/styles/styles.css';
 
 interface Question {
     question: string;

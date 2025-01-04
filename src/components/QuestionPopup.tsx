@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { useSpeechRecognition } from '../useSpeechRecognition';
+import { useSpeechRecognition } from '@/hooks/useSpeechRecognition';
 import axios from 'axios';
 import { FaMicrophone, FaStop, FaKeyboard, FaRedo, FaPaperPlane } from 'react-icons/fa';
 

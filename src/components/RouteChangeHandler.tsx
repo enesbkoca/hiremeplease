@@ -2,8 +2,8 @@
 
 import { useEffect } from 'react';
 import { usePathname } from 'next/navigation';
-import { useLoading } from '@/app/context/LoadingContext';
-import { Loading } from "@/app/components/Loading";
+import { useLoading } from '@/context/LoadingContext';
+import { Loading } from "@/components/Loading";
 
 export default function RouteChangeHandler({ children }: { children: React.ReactNode }) {
     const pathname = usePathname();

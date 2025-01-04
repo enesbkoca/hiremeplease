@@ -2,9 +2,9 @@
 
 import {useState, useEffect } from 'react';
 
-import { useLoading } from '@/app/context/LoadingContext';
-import { Questions } from "@/app/components/Questions";
-import { JobDetails } from "@/app/components/JobDetails";
+import { useLoading } from '@/context/LoadingContext';
+import { Questions } from "@/components/Questions";
+import { JobDetails } from "@/components/JobDetails";
 
 interface QuestionsResponse {
     status: string;

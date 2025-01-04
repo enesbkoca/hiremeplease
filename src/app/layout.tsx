@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
-import "./globals.css";
+import "@/app/globals.css";
 
 import { Analytics } from '@vercel/analytics/react';
-import Header from './components/Header';
-import Footer from './components/Footer';
+import Header from '@/components/Header';
+import Footer from '@/components/Footer';
 
-import { LoadingProvider } from './context/LoadingContext';
-import RouteChangeHandler from './components/RouteChangeHandler';
+import { LoadingProvider } from '@/context/LoadingContext';
+import RouteChangeHandler from '@/components/RouteChangeHandler';
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",

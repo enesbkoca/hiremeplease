@@ -2,8 +2,8 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
-import { UserInput } from './components/UserInput';
-import { useLoading } from '@/app/context/LoadingContext';
+import { UserInput } from '@/components/UserInput';
+import { useLoading } from '@/context/LoadingContext';
 
 export default function Home() {
     const router = useRouter();
