@@ -4,13 +4,11 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { UserInput } from '@/components/UserInput';
 import { useLoading } from '@/context/LoadingContext';
-import {Loading} from "@/components/Loading";
 
 export default function Home() {
     const router = useRouter();
     const [jobDescription, setJobDescription] = useState("");
-    const { isLoading, setIsLoading } = useLoading();
-
+    const { setIsLoading } = useLoading();
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -49,12 +47,6 @@ export default function Home() {
                     handleSubmit={handleSubmit}
                 />
             </main>
-
-            {isLoading && (
-                <div className="absolute top-0 left-0 right-0 bottom-0 flex items-center justify-center bg-white z-20"> {/* Example with white background */}
-                    <Loading />
-                </div>
-            )}
         </div>
     );
 }
