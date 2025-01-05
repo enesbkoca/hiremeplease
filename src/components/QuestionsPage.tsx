@@ -3,7 +3,7 @@
 import {useState, useEffect } from 'react';
 
 import { useLoading } from '@/context/LoadingContext';
-import { Questions } from "@/components/Questions";
+import { AllQuestions } from "@/components/AllQuestions";
 import { JobDetails } from "@/components/JobDetails";
 
 interface QuestionsResponse {
@@ -94,7 +94,7 @@ export default function QuestionsPage({ jobId }: { jobId: string }) {
             {jobDetails && (
                 <div className="mt-8 w-full max-w-3xl rounded-lg border border-gray-200 p-6 shadow-sm">
                     <JobDetails title={jobDetails.job_title} description={jobResponse.description} />
-                    <Questions
+                    <AllQuestions
                         behavioralQuestions={jobDetails.behavioral_questions}
                         technicalQuestions={jobDetails.technical_questions}
                         speechToken={jobResponse.speech_token}

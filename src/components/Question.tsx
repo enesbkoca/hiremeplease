@@ -11,9 +11,10 @@ interface Question {
 interface QuestionProps {
     question: Question;
     onClick: (question: string) => void;
+    disabled: boolean;
 }
 
-const Question: React.FC<QuestionProps> = ({ question, onClick }) => {
+const Question: React.FC<QuestionProps> = ({ question, onClick, disabled }) => {
     const { question: text, category, skill_area, explanation } = question;
     const [isHovered, setIsHovered] = useState(false);
 
@@ -24,7 +25,7 @@ const Question: React.FC<QuestionProps> = ({ question, onClick }) => {
                     ? 'bg-gray-100 border-gray-300 shadow-sm'
                     : 'border-gray-200'
             }`}
-            onClick={() => onClick(text)}
+            onClick={disabled ? undefined : () => onClick(text)}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
         >

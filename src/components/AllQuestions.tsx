@@ -2,14 +2,14 @@ import React, { useState } from 'react';
 import QuestionList from './QuestionList';
 import { QuestionPopup } from './QuestionPopup';
 
-interface QuestionsProps {
+interface AllQuestionsProps {
     behavioralQuestions: { question: string; category: string; explanation: string; }[];
     technicalQuestions: { question: string; skill_area: string; explanation: string; }[];
     speechToken: string;
     region: string;
 }
 
-export const Questions: React.FC<QuestionsProps> = ({ behavioralQuestions, technicalQuestions, speechToken, region }) => {
+export const AllQuestions: React.FC<AllQuestionsProps> = ({ behavioralQuestions, technicalQuestions, speechToken, region }) => {
     const [selectedQuestion, setSelectedQuestion] = useState<string | null>(null);
 
     const handleQuestionClick = (question: string) => {
