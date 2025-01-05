@@ -1,6 +1,0 @@
-python-dotenv
-openai
-Flask==3.0.3
-requests
-redis
-rq
