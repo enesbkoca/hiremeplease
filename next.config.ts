@@ -3,7 +3,7 @@ const nextConfig = {
         '/api/**/*': ['./api/**/*', './requirements.txt'],
     },
     outputFileTracingExcludes: {
-        '/api/**/*': ['./api/rq_worker.py', ".next", "*.cache", "node_modules", "public", "src"],
+        '/api/**/*': ['./api/rq_worker.py', "./.next", "*.cache", "./node_modules", "./public", "./src"],
     },
     rewrites: async () => {
         return [
