@@ -1,5 +1,4 @@
 python-dotenv
-flask
 openai
 Flask==3.0.3
 requests
