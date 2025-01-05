@@ -1,13 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useSpeechRecognition } from '@/hooks/useSpeechRecognition';
+import { useSpeechToken } from '@/context/SpeechTokenContext';
+
 import axios from 'axios';
 import { FaMicrophone, FaStop, FaKeyboard, FaRedo, FaPaperPlane } from 'react-icons/fa';
 
 interface QuestionPopupProps {
     question: string;
     onClose: () => void;
-    speechToken: string;
-    region: string;
 }
 
 enum RecordingState {
@@ -29,11 +29,16 @@ interface AnalysisResponse {
     'Encouragement': string;
 }
 
-export const QuestionPopup: React.FC<QuestionPopupProps> = ({ question, onClose, speechToken, region }) => {
+export const QuestionPopup: React.FC<QuestionPopupProps> = ({ question, onClose }) => {
     const [countdown, setCountdown] = useState(0);
     const [countdownInterval, setCountdownInterval] = useState<NodeJS.Timeout | null>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
-    const { isRecording, startRecording, stopRecording, transcription, setTranscription, error } = useSpeechRecognition(speechToken, region);
+
+    const { speechToken } = useSpeechToken();
+    const { isRecording, startRecording, stopRecording, transcription, setTranscription, error } = useSpeechRecognition(
+        speechToken as string,
+        process.env.NEXT_PUBLIC_SPEECH_REGION as string
+    );
     const [recordingState, setRecordingState] = useState<RecordingState>(RecordingState.Initial);
     const [inputMethod, setInputMethod] = useState<InputMethod>(InputMethod.Voice);
     const [response, setResponse] = useState<AnalysisResponse | null>(null);

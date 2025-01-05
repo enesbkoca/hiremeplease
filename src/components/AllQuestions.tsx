@@ -1,40 +1,17 @@
-import React, { useState } from 'react';
+import React from 'react';
 import QuestionList from './QuestionList';
-import { QuestionPopup } from './QuestionPopup';
 
 interface AllQuestionsProps {
     behavioralQuestions: { question: string; category: string; explanation: string; }[];
     technicalQuestions: { question: string; skill_area: string; explanation: string; }[];
-    speechToken: string;
-    region: string;
 }
 
-export const AllQuestions: React.FC<AllQuestionsProps> = ({ behavioralQuestions, technicalQuestions, speechToken, region }) => {
-    const [selectedQuestion, setSelectedQuestion] = useState<string | null>(null);
-
-    const handleQuestionClick = (question: string) => {
-        setSelectedQuestion(question);
-    };
-
-    const handleBackgroundClick = () => {
-        setSelectedQuestion(null);
-    };
-
+export const AllQuestions: React.FC<AllQuestionsProps> = ({ behavioralQuestions, technicalQuestions }) => {
     return (
         <div className="relative">
-            <QuestionList questions={behavioralQuestions} onQuestionClick={handleQuestionClick}
-                          title="Behavioral Questions"/>
+            <QuestionList questions={behavioralQuestions} title="Behavioral Questions"/>
             <br/>
-            <QuestionList questions={technicalQuestions} onQuestionClick={handleQuestionClick}
-                          title="Technical Questions"/>
-
-            {selectedQuestion && (<QuestionPopup
-                    question={selectedQuestion}
-                    onClose={handleBackgroundClick}
-                    speechToken={speechToken}
-                    region={region}
-                />
-            )}
+            <QuestionList questions={technicalQuestions} title="Technical Questions"/>
         </div>
     );
 };

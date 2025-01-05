@@ -4,18 +4,16 @@ import '@/styles/styles.css';
 
 interface QuestionListProps {
     questions: Question[];
-    onQuestionClick: (question: string) => void;
     title: string;
 }
 
 const QuestionList: React.FC<QuestionListProps> = ({
                                                        questions,
-                                                       onQuestionClick,
                                                        title,
                                                    }) => {
     return (
         <div className="max-w-2xl mx-auto">
-            <h2 className="text-2xl font-bold text-gray-800 mb-6 bg-gradient-to-r from-indigo-500 to-purple-600 text-white p-4 rounded-lg shadow-md">
+            <h2 className="text-2xl font-bold text-gray-800 mb-6 bg-gradient-to-r from-indigo-500 to-purple-600 p-4 rounded-lg shadow-md">
                 {title}
             </h2>
             <div className="space-y-4">
@@ -23,7 +21,6 @@ const QuestionList: React.FC<QuestionListProps> = ({
                     <Question
                         key={index}
                         question={question}
-                        onClick={onQuestionClick}
                     />
                 ))}
             </div>
