@@ -150,9 +150,10 @@ export const QuestionPopup: React.FC<QuestionPopupProps> = ({ question, onClose 
     const warningButtonClasses = `bg-yellow-500 text-white hover:bg-yellow-600 ${buttonBaseClasses}`;
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-10" onClick={onClose}>
-            <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-6 rounded-lg shadow-lg w-11/12 max-w-md max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-10" onClick={(e) => {e.stopPropagation(); onClose();}}>
+            <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-6 rounded-lg shadow-lg w-11/12 max-w-md max-h-[90vh] overflow-y-auto">
                 <h3 className="text-lg font-semibold text-gray-700 mb-4">{question}</h3>
+
 
                 {inputMethod === InputMethod.Text && (
                     <textarea
@@ -221,7 +222,7 @@ export const QuestionPopup: React.FC<QuestionPopupProps> = ({ question, onClose 
                             onClick={handleSubmit}
                             disabled={transcription.trim().length === 0}
                         >
-                            <FaPaperPlane /> Submit
+                            <FaPaperPlane/> Submit
                         </button>
                     </div>
                 )}
@@ -229,7 +230,7 @@ export const QuestionPopup: React.FC<QuestionPopupProps> = ({ question, onClose 
                 {inputMethod === InputMethod.Voice && recordingState === RecordingState.Stopped && (
                     <div className="mb-2">
                         <button className={primaryButtonClasses} onClick={handleSubmit}>
-                            <FaPaperPlane /> Submit
+                            <FaPaperPlane/> Submit
                         </button>
                     </div>
                 )}
@@ -237,7 +238,7 @@ export const QuestionPopup: React.FC<QuestionPopupProps> = ({ question, onClose 
                 {inputMethod === InputMethod.Voice && recordingState === RecordingState.Initial && (
                     <div className="mb-2">
                         <button className={primaryButtonClasses} onClick={handleRecordButtonClick}>
-                            <FaMicrophone /> Record Audio
+                            <FaMicrophone/> Record Audio
                         </button>
                     </div>
                 )}
@@ -248,7 +249,7 @@ export const QuestionPopup: React.FC<QuestionPopupProps> = ({ question, onClose 
                             Time remaining: {formatTime(countdown)}
                         </div>
                         <button className={warningButtonClasses} onClick={handleStopButtonClick}>
-                            <FaStop /> Stop Recording
+                            <FaStop/> Stop Recording
                         </button>
                     </div>
                 )}
@@ -256,7 +257,7 @@ export const QuestionPopup: React.FC<QuestionPopupProps> = ({ question, onClose 
                 {inputMethod === InputMethod.Voice && recordingState === RecordingState.Stopped && (
                     <div className="flex gap-2 mb-2">
                         <button className={dangerButtonClasses} onClick={handleReRecord}>
-                            <FaRedo /> Re-record
+                            <FaRedo/> Re-record
                         </button>
                     </div>
                 )}
@@ -264,7 +265,7 @@ export const QuestionPopup: React.FC<QuestionPopupProps> = ({ question, onClose 
                 {inputMethod === InputMethod.Voice && recordingState === RecordingState.Initial && (
                     <div className="mb-2">
                         <button className={secondaryButtonClasses} onClick={handleEnterTextManually}>
-                            <FaKeyboard /> Enter Text Manually
+                            <FaKeyboard/> Enter Text Manually
                         </button>
                     </div>
                 )}
@@ -272,7 +273,7 @@ export const QuestionPopup: React.FC<QuestionPopupProps> = ({ question, onClose 
                 {inputMethod === InputMethod.Text && (
                     <div className="mb-2">
                         <button className={secondaryButtonClasses} onClick={handleUseVoiceInput}>
-                            <FaMicrophone /> Use Voice Input
+                            <FaMicrophone/> Use Voice Input
                         </button>
                     </div>
                 )}
