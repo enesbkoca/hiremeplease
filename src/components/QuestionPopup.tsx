@@ -126,7 +126,7 @@ export const QuestionPopup: React.FC<QuestionPopupProps> = ({ question, onClose 
         }
     };
 
-    const handleEnterTextManually = () => {
+    const handleEnterTextManually = (e: React.MouseEvent) => {
         setInputMethod(InputMethod.Text);
     };
 
@@ -151,9 +151,8 @@ export const QuestionPopup: React.FC<QuestionPopupProps> = ({ question, onClose 
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-10" onClick={(e) => {e.stopPropagation(); onClose();}}>
-            <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-6 rounded-lg shadow-lg w-11/12 max-w-md max-h-[90vh] overflow-y-auto">
+            <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-6 rounded-lg shadow-lg w-11/12 max-w-md max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
                 <h3 className="text-lg font-semibold text-gray-700 mb-4">{question}</h3>
-
 
                 {inputMethod === InputMethod.Text && (
                     <textarea
