@@ -38,7 +38,7 @@ const Question: React.FC<QuestionProps> = ({ question, disabled, onAnswerSubmit,
 
     return (
         <div
-            className={`p-4 border rounded cursor-pointer transition duration-200 ${
+            className={`relative p-4 border rounded cursor-pointer transition duration-200 overflow-hidden ${
                 isHovered
                     ? 'bg-gray-100 border-gray-300 shadow-sm'
                     : 'border-gray-200'
@@ -48,6 +48,13 @@ const Question: React.FC<QuestionProps> = ({ question, disabled, onAnswerSubmit,
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
         >
+            {disabled && isHovered && (
+                <div
+                    className="absolute top-0 left-0 right-0 bottom-0 bg-gray-800 bg-opacity-50 flex items-center justify-center text-white rounded z-10 pointer-events-none"
+                >
+                    Answer the previous question first.
+                </div>
+            )}
             <p className="font-semibold text-lg mb-2 text-gray-800">{text}</p>
             {category && (
                 <p className="text-sm text-gray-600">
