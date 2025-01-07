@@ -12,16 +12,20 @@ interface Question {
 
 interface QuestionProps {
     question: Question;
+    disabled: boolean;
+    onAnswerSubmit: () => void;
+    isAnswered: boolean;
 }
 
-const Question: React.FC<QuestionProps> = ({ question }) => {
+const Question: React.FC<QuestionProps> = ({ question, disabled, onAnswerSubmit, isAnswered}) => {
     const { question: text, category, skill_area, explanation } = question;
     const [isHovered, setIsHovered] = useState(false);
     const [isPopupOpen, setIsPopupOpen] = useState(false);
-    const [isAnswered, setIsAnswered] = useState(false);
 
     const handleQuestionClick = () => {
-        setIsPopupOpen(true);
+        if (!disabled) {
+            setIsPopupOpen(true);
+        }
     };
 
     const handleClosePopup = () => {
@@ -29,7 +33,7 @@ const Question: React.FC<QuestionProps> = ({ question }) => {
     };
 
     const handleAnswerSubmit = () => {
-        setIsAnswered(true);
+        onAnswerSubmit();
     }
 
     return (
