@@ -18,6 +18,7 @@ const Question: React.FC<QuestionProps> = ({ question }) => {
     const { question: text, category, skill_area, explanation } = question;
     const [isHovered, setIsHovered] = useState(false);
     const [isPopupOpen, setIsPopupOpen] = useState(false);
+    const [isAnswered, setIsAnswered] = useState(false);
 
     const handleQuestionClick = () => {
         setIsPopupOpen(true);
@@ -27,13 +28,18 @@ const Question: React.FC<QuestionProps> = ({ question }) => {
         setIsPopupOpen(false);
     };
 
+    const handleAnswerSubmit = () => {
+        setIsAnswered(true);
+    }
+
     return (
         <div
             className={`p-4 border rounded cursor-pointer transition duration-200 ${
                 isHovered
                     ? 'bg-gray-100 border-gray-300 shadow-sm'
                     : 'border-gray-200'
-            }`}
+            } ${isAnswered ? 'bg-green-100 border-green-300' : ''}`}
+
             onClick={handleQuestionClick}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
@@ -58,6 +64,7 @@ const Question: React.FC<QuestionProps> = ({ question }) => {
                 <QuestionPopup
                     question={question.question}
                     onClose={handleClosePopup}
+                    onSubmit={handleAnswerSubmit}
                 />
             )}
         </div>
