@@ -180,7 +180,7 @@ def generate_answer_analysis(answer_text):
             print(f"OpenAI API refused to generate a response: {json_response.refusal}")
             raise Exception("OpenAI API refused to generate a response")
         else:
-            return json.loads(json_response.content)
+            return json_response.content
 
     except Exception as e:
         print(f"An error occurred: {e}")
