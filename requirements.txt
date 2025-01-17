@@ -4,3 +4,4 @@ Flask==3.0.3
 requests
 redis
 rq
+pydantic==2.10.3
