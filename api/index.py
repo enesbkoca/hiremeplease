@@ -64,7 +64,7 @@ def get_job(job_id):
     }
 
     token_url = f"https://{os.getenv('NEXT_PUBLIC_SPEECH_REGION')}.api.cognitive.microsoft.com/sts/v1.0/issueToken"
-#     token_url = f"https://westeurope.api.cognitive.microsoft.com/sts/v1.0/issueToken"
+    # token_url = f"https://westeurope.api.cognitive.microsoft.com/sts/v1.0/issueToken"
     
     token_response = requests.post(token_url, headers=headers)
 

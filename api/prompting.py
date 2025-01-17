@@ -8,6 +8,54 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+from enum import Enum
+from pydantic import BaseModel, Field, ConfigDict
+from typing import List
+
+class BehavioralQuestion(BaseModel):
+    question: str
+    category: str
+    explanation: str
+
+class TechnicalQuestion(BaseModel):
+    question: str
+    skill_area: str
+    explanation: str
+
+class InterviewPreparation(BaseModel):
+    job_title: str
+    industry: str
+    experience_level: str
+    behavioral_questions: List[BehavioralQuestion]
+    technical_questions: List[TechnicalQuestion]
+    additional_notes: str
+
+
+
+# Define the tag types as an enumeration
+class TagType(str, Enum):
+    MUST_SAY = "must-say"
+    GOOD = "good"
+    UNNECESSARY = "unnecessary"
+    SHOULD_BE_AVOIDED = "should-be-avoided"
+
+# Model for each tagged phrase
+class TaggedPhrase(BaseModel):
+    phrase: str
+    type: TagType
+    comment: str
+
+# Main feedback model with alias for JSON keys
+class Feedback(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+    
+    summary_of_strengths: str = Field(alias="Summary of Strengths")
+    areas_for_improvement: str = Field(alias="Areas for Improvement")
+    specific_suggestions: List[str] = Field(alias="Specific Suggestions")
+    practice_exercises: List[str] = Field(alias="Practice Exercises")
+    encouragement: str = Field(alias="Encouragement")
+    tagged_answer: List[TaggedPhrase] = Field(alias="tagged_answer")
+
 
 # Initialize OpenAI API client
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
@@ -27,31 +75,7 @@ def generate_response(job_description):
     prompt = {
         "role": "system",
         "content": """You are a highly skilled interview assistant. Your task is to analyze a job description and generate 5 behavioral questions and 5 technical questions (if applicable) tailored to help the user prepare effectively. Ensure the questions are diverse, relevant to the role, and encourage deep reflection or domain-specific thinking. Include examples where needed.
-
-Your response must strictly adhere to the following JSON format and contain no text or content outside of the JSON structure:
-
-{
-  "job_title": "string",
-  "industry": "string",
-  "experience_level": "string",
-  "behavioral_questions": [
-    {
-      "question": "string",
-      "category": "string", 
-      "explanation": "string"
-    }
-  ],
-  "technical_questions": [
-    {
-      "question": "string",
-      "skill_area": "string", 
-      "explanation": "string"
-    }
-  ],
-  "additional_notes": "string"
-}
-
-Ensure the response is well-structured, valid JSON, and can be directly parsed by a system without errors."""
+        Your response must strictly adhere to a specific JSON format and contain no text or content outside of the JSON structure. Ensure the response is well-structured, valid JSON, and can be directly parsed by a system without errors."""
     }
     user_message = {"role": "user", "content": job_description}
 
@@ -59,12 +83,17 @@ Ensure the response is well-structured, valid JSON, and can be directly parsed b
         response = client.chat.completions.create(
             model="gpt-4o",
             messages=[prompt, user_message],
-            response_format={"type": "json_object"},
+            response_format=InterviewPreparation,
             temperature = 0.2
         )
-        json_output = json.loads(response.choices[0].message.content)
 
-        return json_output
+        json_output = response.choices[0].message
+        
+        if json_output.refusal:
+            print(f"OpenAI API refused to generate a response: {json_output.refusal}")
+            raise Exception("OpenAI API refused to generate a response")
+        else:
+            return(json.loads(json_output.content))
 
     except json.JSONDecodeError as e:
         print(f"JSON Decode Error: {e}")
@@ -115,21 +144,16 @@ def generate_answer_analysis(answer_text):
             - **Encouragement**: Conclude with encouraging remarks to motivate the user.
 
         5. **Output Format**:
-        - Generate a JSON response with the following structure:
-            {
-            "Summary of Strengths": "string",
-            "Areas for Improvement": "string",
-            "Specific Suggestions": ["string"],
-            "Practice Exercises": ["string"],
-            "Encouragement": "string",
-            "tagged_answer": [
-                {
-                "phrase": "string",
-                "type": "must-say | good | unnecessary | should-be-avoided",
-                "comment": "string"
-                }
-            ]
-            }
+        - The output should be a JSON object containing the following keys:
+            - 'Summary of Strengths': a string summarizing the strengths in the user's response.
+            - 'Areas for Improvement': a string identifying areas where the user can improve.
+            - 'Specific Suggestions': a list of strings providing actionable suggestions for improvement.
+            - 'Practice Exercises': a list of strings suggesting exercises or practice opportunities.
+            - 'Encouragement': a string offering encouraging remarks.
+            - 'tagged_answer': a list of objects, each containing:
+                - 'phrase': a string representing the tagged phrase from the user's answer.
+                - 'type': a string indicating the type of tag ('must-say', 'good', 'unnecessary', or 'should-be-avoided').
+                - 'comment': a string providing a constructive comment on the tagged phrase.
         - Only include tags and comments for phrases where meaningful feedback is needed. Do not tag every phrase.
 
         6. **Interview Context**:
@@ -142,13 +166,22 @@ def generate_answer_analysis(answer_text):
     user_message = {"role": "user", "content": answer_text}
 
     try:
-        response = client.chat.completions.create(
-            model="gpt-4",
+        
+        response = client.beta.chat.completions.parse(
+            model="gpt-4o",
             messages=[prompt, user_message],
+            response_format=Feedback,
             temperature=0.2
         )
         
-        return response.choices[0].message.content
+        json_response = response.choices[0].message
+
+        if json_response.refusal:
+            print(f"OpenAI API refused to generate a response: {json_response.refusal}")
+            raise Exception("OpenAI API refused to generate a response")
+        else:
+            return json_response.content
+
     except Exception as e:
         print(f"An error occurred: {e}")
         return None
