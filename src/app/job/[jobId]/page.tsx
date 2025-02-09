@@ -1,12 +1,12 @@
-import QuestionsPage from "@/app/components/QuestionsPage";
+import QuestionsPage from "@/components/QuestionsPage";
 
 
 export default async function JobPage({ params }: { params: Promise<{ jobId: string }> }) {
     const { jobId } = await params;
 
     return (
-        <div className="relative flex justify-center items-center">
+        <main className="w-full flex justify-center">
             <QuestionsPage jobId={jobId}/>
-        </div>
+        </main>
     );
 }

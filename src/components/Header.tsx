@@ -4,7 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation'
 
-import GoBackButton from "@/app/components/GoBackButton";
+import GoBackButton from "@/components/GoBackButton";
 
 const Header: React.FC = () => {
     const pathname = usePathname()

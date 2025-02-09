@@ -1,4 +1,7 @@
 const nextConfig = {
+    outputFileTracingIncludes: {
+        '/api/**/*': ['./api/**/*', './requirements.txt'],
+    },
     rewrites: async () => {
         return [
             {

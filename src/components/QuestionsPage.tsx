@@ -2,9 +2,10 @@
 
 import {useState, useEffect } from 'react';
 
-import { useLoading } from '@/app/context/LoadingContext';
-import { Questions } from "@/app/components/Questions";
-import { JobDetails } from "@/app/components/JobDetails";
+import { SpeechTokenProvider } from '@/context/SpeechTokenContext';
+import { useLoading } from '@/context/LoadingContext';
+import { AllQuestions } from "@/components/AllQuestions";
+import { JobDetails } from "@/components/JobDetails";
 
 interface QuestionsResponse {
     status: string;
@@ -44,6 +45,7 @@ async function getJobDetails(jobId: string): Promise<QuestionsResponse | null> {
 
 export default function QuestionsPage({ jobId }: { jobId: string }) {
     const [jobResponse, setJobResponse] = useState<QuestionsResponse | null>(null);
+    const [speechToken, setSpeechToken] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
     const { setIsLoading } = useLoading()
 
@@ -62,6 +64,7 @@ export default function QuestionsPage({ jobId }: { jobId: string }) {
                 }
 
                 setJobResponse(response);
+                setSpeechToken(response.speech_token);
 
                 if (response.status !== "Completed") {
                     timeoutId = setTimeout(fetchJob, 2000);
@@ -94,11 +97,13 @@ export default function QuestionsPage({ jobId }: { jobId: string }) {
             {jobDetails && (
                 <div className="mt-8 w-full max-w-3xl rounded-lg border border-gray-200 p-6 shadow-sm">
                     <JobDetails title={jobDetails.job_title} description={jobResponse.description} />
-                    <Questions
+
+                    <SpeechTokenProvider value={speechToken}>
+                        <AllQuestions
                         behavioralQuestions={jobDetails.behavioral_questions}
                         technicalQuestions={jobDetails.technical_questions}
-                        speechToken={jobResponse.speech_token}
-                        region={process.env.NEXT_PUBLIC_SPEECH_REGION as string} />
+                        />
+                    </SpeechTokenProvider>
                 </div>
             )}
         </>

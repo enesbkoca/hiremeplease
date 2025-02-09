@@ -1,6 +1,7 @@
 'use client';
 
-import React, { createContext, useState, useContext } from 'react';
+import React, { createContext, useState, useContext, ReactNode } from 'react';
+import LoadingIndicator from "@/components/LoadingIndicator";
 
 interface LoadingContextProps {
     isLoading: boolean;
@@ -12,12 +13,17 @@ const LoadingContext = createContext<LoadingContextProps>({
     setIsLoading: () => {},
 });
 
-export const LoadingProvider = ({ children }: { children: React.ReactNode }) => {
+export const LoadingProvider = ({ children }: { children: ReactNode }) => {
     const [isLoading, setIsLoading] = useState(false);
 
     return (
         <LoadingContext.Provider value={{ isLoading, setIsLoading }}>
             {children}
+            {isLoading && (
+                <div className="absolute inset-0 flex items-center justify-center bg-white pointer-events-none">
+                    <LoadingIndicator size={50}/>
+                </div>
+            )}
         </LoadingContext.Provider>
     );
 };
