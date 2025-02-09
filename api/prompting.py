@@ -81,7 +81,7 @@ def generate_response(job_description):
 
     try:
         response = client.chat.completions.create(
-            model="gpt-4o",
+            model="gpt-4o-mini",
             messages=[prompt, user_message],
             response_format=InterviewPreparation,
             temperature = 0.2
@@ -168,7 +168,7 @@ def generate_answer_analysis(answer_text):
     try:
         
         response = client.beta.chat.completions.parse(
-            model="gpt-4o",
+            model="gpt-4o-mini",
             messages=[prompt, user_message],
             response_format=Feedback,
             temperature=0.2
