@@ -35,7 +35,7 @@ def generate_and_store_questions(description_id, description):
 def index():
     return "<p>Welcome to the API!</p>"
 
-@app.route('/api/create-job', methods=['POST'])
+@app.route('/api/jobs', methods=['POST'])
 def create_job():
     data = request.json
     description = data.get("description")
@@ -64,8 +64,7 @@ def get_job(job_id):
     }
 
     token_url = f"https://{os.getenv('NEXT_PUBLIC_SPEECH_REGION')}.api.cognitive.microsoft.com/sts/v1.0/issueToken"
-    # token_url = f"https://westeurope.api.cognitive.microsoft.com/sts/v1.0/issueToken"
-    
+
     token_response = requests.post(token_url, headers=headers)
 
     if job_data_json:
@@ -75,7 +74,7 @@ def get_job(job_id):
     else:
         return jsonify({"error": "Job Description not found"}), 404
 
-@app.route('/api/analyze-answer', methods=['POST'])
+@app.route('/api/analyses', methods=['POST'])
 def analyze_answer():
     data = request.json
     answer_text = data.get("answer_text")
