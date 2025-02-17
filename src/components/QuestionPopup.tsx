@@ -130,7 +130,7 @@ export const QuestionPopup: React.FC<QuestionPopupProps> = ({ question, onClose,
         try {
             logger.info('Submitting answer for analysis');
             setIsLoading(true);
-            const res = await axios.post('/api/analysis', { answer_text: answerText });
+            const res = await axios.post('/api/analyses', { answer_text: answerText });
             const parsedResponse: AnalysisResponse = JSON.parse(res.data.analysis);
             setResponse(parsedResponse);
             setIsLoading(false);
