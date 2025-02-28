@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useSpeechRecognition } from '@/hooks/useSpeechRecognition';
 import { useSpeechToken } from '@/context/SpeechTokenContext';
 
@@ -31,116 +31,114 @@ interface AnalysisResponse {
     'Encouragement': string;
 }
 
-export const QuestionPopup: React.FC<QuestionPopupProps> = ({ question, onClose, onSubmit }) => {
-    const [countdown, setCountdown] = useState(0);
-    const [countdownInterval, setCountdownInterval] = useState<NodeJS.Timeout | null>(null);
-    const textareaRef = useRef<HTMLTextAreaElement>(null);
+const TOTAL_COUNTDOWN_TIME = 120;
+const BUTTON_BASE_CLASSES = "w-full py-2 px-4 rounded-lg transition duration-200 flex items-center justify-center gap-2";
+const BUTTON_STYLES = {
+    primary: `bg-blue-500 text-white hover:bg-blue-600 ${BUTTON_BASE_CLASSES}`,
+    primaryDisabled: `bg-blue-300 text-white cursor-default ${BUTTON_BASE_CLASSES}`,
+    secondary: `bg-gray-300 text-gray-700 hover:bg-gray-400 ${BUTTON_BASE_CLASSES}`,
+    danger: `bg-red-500 text-white hover:bg-red-600 ${BUTTON_BASE_CLASSES}`,
+    warning: `bg-yellow-500 text-white hover:bg-yellow-600 ${BUTTON_BASE_CLASSES}`,
+};
 
-    const { speechToken } = useSpeechToken();
-    const { isRecording, startRecording, stopRecording, transcription, setTranscription, error } = useSpeechRecognition(
-        speechToken as string,
-        process.env.NEXT_PUBLIC_SPEECH_REGION as string
-    );
+export const QuestionPopup: React.FC<QuestionPopupProps> = ({ question, onClose, onSubmit }) => {
+    const [countdown, setCountdown] = useState(TOTAL_COUNTDOWN_TIME);
     const [recordingState, setRecordingState] = useState<RecordingState>(RecordingState.Initial);
     const [inputMethod, setInputMethod] = useState<InputMethod>(InputMethod.Voice);
     const [response, setResponse] = useState<AnalysisResponse | null>(null);
     const [apiError, setApiError] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
+    
+    const textareaRef = useRef<HTMLTextAreaElement>(null);
+    const countdownInterval = useRef<NodeJS.Timeout | null>(null);
 
-    const totalCountdownTime = 120;
+    const { speechToken } = useSpeechToken();
+    const { 
+        isRecording, 
+        startRecording, 
+        stopRecording, 
+        transcription, 
+        setTranscription, 
+        error: speechError 
+    } = useSpeechRecognition(
+        speechToken as string,
+        process.env.NEXT_PUBLIC_SPEECH_REGION as string
+    );
 
-    // Disable background scrolling when the popup is open
+    // Cleanup functions
+    const cleanupCountdown = useCallback(() => {
+        if (countdownInterval.current) {
+            clearInterval(countdownInterval.current);
+            countdownInterval.current = null;
+        }
+    }, []);
+
     useEffect(() => {
         document.body.style.overflow = 'hidden';
         return () => {
             document.body.style.overflow = 'auto';
+            cleanupCountdown();
         };
-    }, []);
+    }, [cleanupCountdown]);
 
     useEffect(() => {
         if (textareaRef.current) {
             textareaRef.current.focus();
         }
-    }, []);
+    }, [inputMethod]);
 
+    // Handle recording state changes
     useEffect(() => {
-        if (inputMethod === InputMethod.Voice && recordingState === RecordingState.Recording) {
-            setCountdown(totalCountdownTime);
-            const interval = setInterval(() => {
-                setCountdown((prevCountdown) => {
-                    if (prevCountdown <= 1) {
-                        clearInterval(interval);
-                        setCountdownInterval(null);
-                        stopRecording();
-                        return 0;
-                    }
-                    return prevCountdown - 1;
-                });
-            }, 1000);
-            setCountdownInterval(interval);
-        } else if (countdownInterval) {
-            clearInterval(countdownInterval);
-            setCountdownInterval(null);
-        }
-        return () => {
-            if (countdownInterval) {
-                clearInterval(countdownInterval);
+        if (inputMethod === InputMethod.Voice) {
+            if (isRecording && recordingState !== RecordingState.Recording) {
+                setRecordingState(RecordingState.Recording);
+                // Start countdown
+                setCountdown(TOTAL_COUNTDOWN_TIME);
+                countdownInterval.current = setInterval(() => {
+                    setCountdown(prev => {
+                        if (prev <= 1) {
+                            stopRecording();
+                            cleanupCountdown();
+                            return 0;
+                        }
+                        return prev - 1;
+                    });
+                }, 1000);
+            } else if (!isRecording && recordingState === RecordingState.Recording) {
+                setRecordingState(RecordingState.Stopped);
+                cleanupCountdown();
             }
-        };
-    }, [inputMethod, recordingState, stopRecording]);
-
-    useEffect(() => {
-        if (inputMethod === InputMethod.Voice && isRecording && recordingState !== RecordingState.Recording) {
-            setRecordingState(RecordingState.Recording);
-        } else if (inputMethod === InputMethod.Voice && !isRecording && recordingState === RecordingState.Recording) {
-            setRecordingState(RecordingState.Stopped);
         }
-    }, [inputMethod, isRecording, recordingState]);
-
-    const handleRecordButtonClick = () => {
-        startRecording();
-    };
-
-    const handleStopButtonClick = () => {
-        stopRecording();
-    };
-
-    const handleReRecord = () => {
-        setTranscription('');
-        setRecordingState(RecordingState.Initial);
-        setInputMethod(InputMethod.Voice);
-    };
+    }, [inputMethod, isRecording, recordingState, stopRecording, cleanupCountdown]);
 
     const handleSubmit = async () => {
         const answerText = transcription.trim();
-        if (answerText === '') {
-            alert('Please enter or record your answer.');
+        if (!answerText) {
+            setApiError('Please enter or record your answer.');
             return;
         }
 
         try {
             setIsLoading(true);
+            setApiError(null);
             const res = await axios.post('/api/analyze-answer', { answer_text: answerText });
             const parsedResponse: AnalysisResponse = JSON.parse(res.data.analysis);
             setResponse(parsedResponse);
-            setIsLoading(false);
-            setApiError(null);
             onSubmit();
         } catch (err) {
-            console.error('API call failed:', err);
             setApiError('Failed to analyze answer. Please try again.');
+            console.error('API call failed:', err);
+        } finally {
+            setIsLoading(false);
         }
     };
 
-    const handleEnterTextManually = () => {
-        setInputMethod(InputMethod.Text);
-    };
-
-    const handleUseVoiceInput = () => {
-        setInputMethod(InputMethod.Voice);
+    const handleReRecord = useCallback(() => {
         setTranscription('');
         setRecordingState(RecordingState.Initial);
-    };
+        setInputMethod(InputMethod.Voice);
+        setApiError(null);
+    }, [setTranscription]);
 
     const formatTime = (seconds: number) => {
         const minutes = Math.floor(seconds / 60);
@@ -148,144 +146,129 @@ export const QuestionPopup: React.FC<QuestionPopupProps> = ({ question, onClose,
         return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
     };
 
-    const buttonBaseClasses = "w-full py-2 px-4 rounded-lg transition duration-200 flex items-center justify-center gap-2";
-    const primaryButtonClasses = `bg-blue-500 text-white hover:bg-blue-600 ${buttonBaseClasses}`;
-    const primaryButtonDisabledClasses = `bg-blue-300 text-white cursor-default ${buttonBaseClasses}`;
-    const secondaryButtonClasses = `bg-gray-300 text-gray-700 hover:bg-gray-400 ${buttonBaseClasses}`;
-    const dangerButtonClasses = `bg-red-500 text-white hover:bg-red-600 ${buttonBaseClasses}`;
-    const warningButtonClasses = `bg-yellow-500 text-white hover:bg-yellow-600 ${buttonBaseClasses}`;
-
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-10" onClick={(e) => {e.stopPropagation(); onClose();}}>
-            <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-6 rounded-lg shadow-lg w-11/12 max-w-md max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-10" onClick={onClose}>
+            <div 
+                className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-6 rounded-lg shadow-lg w-11/12 max-w-md max-h-[90vh] overflow-y-auto" 
+                onClick={e => e.stopPropagation()}
+            >
                 <h3 className="text-lg font-semibold text-gray-700 mb-4">{question}</h3>
 
-                {(isLoading) && <LoadingIndicator size={25}/>}
+                {isLoading && <LoadingIndicator size={25}/>}
 
-                {(!isLoading) && <div>
-                    {inputMethod === InputMethod.Text && (
-                        <textarea
-                            ref={textareaRef}
-                            className="w-full p-2 border border-gray-300 rounded-lg mb-4"
-                            value={transcription}
-                            onChange={(e) => setTranscription(e.target.value)}
-                            rows={4}
-                        />
-                    )}
+                {!isLoading && (
+                    <div>
+                        {(inputMethod === InputMethod.Text || recordingState === RecordingState.Stopped) && (
+                            <textarea
+                                ref={textareaRef}
+                                className="w-full p-2 border border-gray-300 rounded-lg mb-4"
+                                value={transcription}
+                                onChange={(e) => setTranscription(e.target.value)}
+                                rows={4}
+                            />
+                        )}
 
-                    {inputMethod === InputMethod.Voice && recordingState === RecordingState.Stopped && (
-                        <textarea
-                            ref={textareaRef}
-                            className="w-full p-2 border border-gray-300 rounded-lg mb-4"
-                            value={transcription}
-                            onChange={(e) => setTranscription(e.target.value)}
-                            rows={4}
-                        />
-                    )}
-
-                    {error && <div className="text-red-500 mb-2">{error}</div>}
-
-                    {response && (
-                        <div className="mb-4">
-                            <h4 className="text-md font-semibold text-gray-700">Analysis:</h4>
-                            <div className="space-y-4">
-                                <div>
-                                    <h5 className="font-semibold text-gray-700">Summary of Strengths:</h5>
-                                    <p className="text-gray-600">{response['Summary of Strengths']}</p>
-                                </div>
-                                <div>
-                                    <h5 className="font-semibold text-gray-700">Areas for Improvement:</h5>
-                                    <p className="text-gray-600">{response['Areas for Improvement']}</p>
-                                </div>
-                                <div>
-                                    <h5 className="font-semibold text-gray-700">Specific Suggestions:</h5>
-                                    <ul className="list-disc pl-6 text-gray-600">
-                                        {response['Specific Suggestions'].map((suggestion, index) => (
-                                            <li key={index}>{suggestion}</li>
-                                        ))}
-                                    </ul>
-                                </div>
-                                <div>
-                                    <h5 className="font-semibold text-gray-700">Practice Exercises:</h5>
-                                    <ul className="list-disc pl-6 text-gray-600">
-                                        {response['Practice Exercises'].map((exercise, index) => (
-                                            <li key={index}>{exercise}</li>
-                                        ))}
-                                    </ul>
-                                </div>
-                                <div>
-                                    <h5 className="font-semibold text-gray-700">Encouragement:</h5>
-                                    <p className="text-gray-600">{response['Encouragement']}</p>
-                                </div>
+                        {(speechError || apiError) && (
+                            <div className="text-red-500 mb-2">
+                                {speechError?.message || apiError}
                             </div>
-                        </div>
-                    )}
+                        )}
 
-                    {apiError && <p className="text-red-500 text-sm mt-2">{apiError}</p>}
-
-                    {inputMethod === InputMethod.Text && (
-                        <div className="mb-2">
-                            <button
-                                className={transcription.trim().length > 0 ? primaryButtonClasses : primaryButtonDisabledClasses}
-                                onClick={handleSubmit}
-                                disabled={transcription.trim().length === 0}
-                            >
-                                <FaPaperPlane/> Submit
-                            </button>
-                        </div>
-                    )}
-
-                    {inputMethod === InputMethod.Voice && recordingState === RecordingState.Stopped && (
-                        <div className="mb-2">
-                            <button className={primaryButtonClasses} onClick={handleSubmit}>
-                                <FaPaperPlane/> Submit
-                            </button>
-                        </div>
-                    )}
-
-                    {inputMethod === InputMethod.Voice && recordingState === RecordingState.Initial && (
-                        <div className="mb-2">
-                            <button className={primaryButtonClasses} onClick={handleRecordButtonClick}>
-                                <FaMicrophone/> Record Audio
-                            </button>
-                        </div>
-                    )}
-
-                    {inputMethod === InputMethod.Voice && recordingState === RecordingState.Recording && (
-                        <div className="mb-2">
-                            <div className="text-center text-gray-600 mb-2">
-                                Time remaining: {formatTime(countdown)}
+                        {response && (
+                            <div className="mb-4 space-y-4">
+                                {Object.entries(response).map(([key, value]) => (
+                                    <div key={key}>
+                                        <h5 className="font-semibold text-gray-700">{key}:</h5>
+                                        {Array.isArray(value) ? (
+                                            <ul className="list-disc pl-6 text-gray-600">
+                                                {value.map((item, index) => (
+                                                    <li key={index}>{item}</li>
+                                                ))}
+                                            </ul>
+                                        ) : (
+                                            <p className="text-gray-600">{value}</p>
+                                        )}
+                                    </div>
+                                ))}
                             </div>
-                            <button className={warningButtonClasses} onClick={handleStopButtonClick}>
-                                <FaStop/> Stop Recording
-                            </button>
-                        </div>
-                    )}
+                        )}
 
-                    {inputMethod === InputMethod.Voice && recordingState === RecordingState.Stopped && (
-                        <div className="flex gap-2 mb-2">
-                            <button className={dangerButtonClasses} onClick={handleReRecord}>
-                                <FaRedo/> Re-record
-                            </button>
-                        </div>
-                    )}
+                        <div className="space-y-2">
+                            {inputMethod === InputMethod.Text && (
+                                <>
+                                    <button
+                                        className={transcription.trim() ? BUTTON_STYLES.primary : BUTTON_STYLES.primaryDisabled}
+                                        onClick={handleSubmit}
+                                        disabled={!transcription.trim()}
+                                    >
+                                        <FaPaperPlane/> Submit
+                                    </button>
+                                    <button 
+                                        className={BUTTON_STYLES.secondary} 
+                                        onClick={() => {
+                                            setInputMethod(InputMethod.Voice);
+                                            setTranscription('');
+                                        }}
+                                    >
+                                        <FaMicrophone/> Use Voice Input
+                                    </button>
+                                </>
+                            )}
 
-                    {inputMethod === InputMethod.Voice && recordingState === RecordingState.Initial && (
-                        <div className="mb-2">
-                            <button className={secondaryButtonClasses} onClick={handleEnterTextManually}>
-                                <FaKeyboard/> Enter Text Manually
-                            </button>
-                        </div>
-                    )}
+                            {inputMethod === InputMethod.Voice && (
+                                <>
+                                    {recordingState === RecordingState.Initial && (
+                                        <>
+                                            <button 
+                                                className={BUTTON_STYLES.primary} 
+                                                onClick={startRecording}
+                                            >
+                                                <FaMicrophone/> Record Audio
+                                            </button>
+                                            <button 
+                                                className={BUTTON_STYLES.secondary} 
+                                                onClick={() => setInputMethod(InputMethod.Text)}
+                                            >
+                                                <FaKeyboard/> Enter Text Manually
+                                            </button>
+                                        </>
+                                    )}
 
-                    {inputMethod === InputMethod.Text && (
-                        <div className="mb-2">
-                            <button className={secondaryButtonClasses} onClick={handleUseVoiceInput}>
-                                <FaMicrophone/> Use Voice Input
-                            </button>
+                                    {recordingState === RecordingState.Recording && (
+                                        <>
+                                            <div className="text-center text-gray-600 mb-2">
+                                                Time remaining: {formatTime(countdown)}
+                                            </div>
+                                            <button 
+                                                className={BUTTON_STYLES.warning} 
+                                                onClick={stopRecording}
+                                            >
+                                                <FaStop/> Stop Recording
+                                            </button>
+                                        </>
+                                    )}
+
+                                    {recordingState === RecordingState.Stopped && (
+                                        <>
+                                            <button 
+                                                className={BUTTON_STYLES.primary} 
+                                                onClick={handleSubmit}
+                                            >
+                                                <FaPaperPlane/> Submit
+                                            </button>
+                                            <button 
+                                                className={BUTTON_STYLES.danger} 
+                                                onClick={handleReRecord}
+                                            >
+                                                <FaRedo/> Re-record
+                                            </button>
+                                        </>
+                                    )}
+                                </>
+                            )}
                         </div>
-                    )}
-                </div>}
+                    </div>
+                )}
             </div>
         </div>
     );
