@@ -69,7 +69,7 @@ def generate_response(job_description):
         job_description: The job description as a string.
 
     Returns:
-        A dictionary representing the structured JSON output, or None if an error occurs.
+        A dictionary representing the structured JSON output, or raises an exception if an error occurs.
     """
 
     prompt = {
@@ -90,31 +90,33 @@ def generate_response(job_description):
         json_output = response.choices[0].message
         
         if json_output.refusal:
-            print(f"OpenAI API refused to generate a response: {json_output.refusal}")
-            raise Exception("OpenAI API refused to generate a response")
-        else:
-            return(json.loads(json_output.content))
+            error_msg = f"OpenAI API refused to generate a response: {json_output.refusal}"
+            print(error_msg)
+            raise ValueError(error_msg)
+        
+        return json.loads(json_output.content)
 
     except json.JSONDecodeError as e:
-        print(f"JSON Decode Error: {e}")
-        print(f"Raw Response: {response.choices[0].message.content}")
-        pass
+        error_msg = f"Failed to parse OpenAI response: {str(e)}"
+        print(f"{error_msg}\nRaw Response: {response.choices[0].message.content}")
+        raise ValueError(error_msg)
     except openai.APIConnectionError as e:
-        # Handle connection error here
-        print(f"Failed to connect to OpenAI API: {e}")
-        pass
+        error_msg = f"Failed to connect to OpenAI API: {str(e)}"
+        print(error_msg)
+        raise ConnectionError(error_msg)
     except openai.APIError as e:
-        # Handle API error here, e.g. retry or log
-        print(f"OpenAI API returned an API Error: {e}")
-        pass
+        error_msg = f"OpenAI API error: {str(e)}"
+        print(error_msg)
+        raise RuntimeError(error_msg)
     except openai.RateLimitError as e:
-        # Handle rate limit error (we recommend using exponential backoff)
-        print(f"OpenAI API request exceeded rate limit: {e}")
-        pass
+        error_msg = f"OpenAI API rate limit exceeded: {str(e)}"
+        print(error_msg)
+        raise RuntimeError(error_msg)
     except Exception as e:
-        print(f"An unexpected error occurred: {e}")
-        pass
-    
+        error_msg = f"Unexpected error in generate_response: {str(e)}"
+        print(error_msg)
+        raise RuntimeError(error_msg)
+
 def generate_answer_analysis(answer_text):
     
     prompt = {
@@ -177,11 +179,13 @@ def generate_answer_analysis(answer_text):
         json_response = response.choices[0].message
 
         if json_response.refusal:
-            print(f"OpenAI API refused to generate a response: {json_response.refusal}")
-            raise Exception("OpenAI API refused to generate a response")
-        else:
-            return json_response.content
+            error_msg = f"OpenAI API refused to generate a response: {json_response.refusal}"
+            print(error_msg)
+            raise ValueError(error_msg)
+        
+        return json_response.content
 
     except Exception as e:
-        print(f"An error occurred: {e}")
-        return None
+        error_msg = f"Error in generate_answer_analysis: {str(e)}"
+        print(error_msg)
+        raise RuntimeError(error_msg)
