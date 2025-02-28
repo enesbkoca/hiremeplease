@@ -80,25 +80,20 @@ def generate_response(job_description):
     user_message = {"role": "user", "content": job_description}
 
     try:
-        response = client.chat.completions.create(
+        print("Sending request to OpenAI API with job description:", job_description[:100], "...")
+        response = client.beta.chat.completions.parse(
             model="gpt-4o-mini",
             messages=[prompt, user_message],
             response_format=InterviewPreparation,
-            temperature = 0.2
+            temperature=0.2
         )
 
-        json_output = response.choices[0].message
-        
-        if json_output.refusal:
-            error_msg = f"OpenAI API refused to generate a response: {json_output.refusal}"
-            print(error_msg)
-            raise ValueError(error_msg)
-        
-        return json.loads(json_output.content)
+        print("Received response from OpenAI API:", response.model_dump_json())
+        return response.model_dump()
 
     except json.JSONDecodeError as e:
         error_msg = f"Failed to parse OpenAI response: {str(e)}"
-        print(f"{error_msg}\nRaw Response: {response.choices[0].message.content}")
+        print(error_msg)
         raise ValueError(error_msg)
     except openai.APIConnectionError as e:
         error_msg = f"Failed to connect to OpenAI API: {str(e)}"
@@ -168,7 +163,7 @@ def generate_answer_analysis(answer_text):
     user_message = {"role": "user", "content": answer_text}
 
     try:
-        
+        print("Sending request to OpenAI API for answer analysis:", answer_text[:100], "...")
         response = client.beta.chat.completions.parse(
             model="gpt-4o-mini",
             messages=[prompt, user_message],
@@ -176,14 +171,8 @@ def generate_answer_analysis(answer_text):
             temperature=0.2
         )
         
-        json_response = response.choices[0].message
-
-        if json_response.refusal:
-            error_msg = f"OpenAI API refused to generate a response: {json_response.refusal}"
-            print(error_msg)
-            raise ValueError(error_msg)
-        
-        return json_response.content
+        print("Received response from OpenAI API:", response.model_dump_json())
+        return response.model_dump()
 
     except Exception as e:
         error_msg = f"Error in generate_answer_analysis: {str(e)}"
