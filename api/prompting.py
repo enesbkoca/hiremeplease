@@ -90,20 +90,16 @@ def generate_response(job_description: str) -> Optional[dict]:
 
     try:
         logger.info("Sending request to OpenAI API")
-        response = client.chat.completions.create(
+        response = client.beta.chat.completions.parse(
             model="gpt-4o-mini",
             messages=[prompt, user_message],
             response_format=InterviewPreparation,
             temperature=0.2
         )
-
-        if response.refusal:
-            error_msg = f"OpenAI API refused to generate a response: {response.refusal}"
-            logger.error(error_msg)
-            raise Exception(error_msg)
         
         logger.info("Successfully generated interview questions")
-        return response.content
+        json_output = response.choices[0].message
+        return json.loads(json_output.content)
 
     except json.JSONDecodeError as e:
         error_msg = f"JSON Decode Error: {str(e)}"
@@ -185,14 +181,10 @@ def generate_answer_analysis(answer_text: str) -> Optional[dict]:
             response_format=Feedback,
             temperature=0.2
         )
-        
-        if response.refusal:
-            error_msg = f"OpenAI API refused to analyze answer: {response.refusal}"
-            logger.error(f"{error_msg}\n{traceback.format_exc()}")
-            raise Exception(error_msg)
 
         logger.info("Successfully generated answer analysis")
-        return response.content
+        json_output = response.choices[0].message
+        return json.loads(json_output.content)
 
     except Exception as e:
         error_msg = f"Error generating answer analysis: {str(e)}"
