@@ -1,5 +1,6 @@
 import os
 import json
+import traceback
 
 import openai
 from openai import OpenAI
@@ -65,7 +66,7 @@ try:
     client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
     logger.info("OpenAI client initialized successfully")
 except Exception as e:
-    logger.error(f"Failed to initialize OpenAI client: {str(e)}")
+    logger.error(f"Failed to initialize OpenAI client: {str(e)}\n{traceback.format_exc()}")
     raise
 
 def generate_response(job_description: str) -> Optional[dict]:
@@ -93,33 +94,36 @@ def generate_response(job_description: str) -> Optional[dict]:
             model="gpt-4o-mini",
             messages=[prompt, user_message],
             response_format=InterviewPreparation,
-            temperature = 0.2
+            temperature=0.2
         )
 
-        json_output = response.choices[0].message
-        
-        if json_output.refusal:
-            logger.error(f"OpenAI API refused to generate a response: {json_output.refusal}")
-            raise Exception("OpenAI API refused to generate a response")
+        if response.refusal:
+            error_msg = f"OpenAI API refused to generate a response: {response.refusal}"
+            logger.error(error_msg)
+            raise Exception(error_msg)
         
         logger.info("Successfully generated interview questions")
-        return json.loads(json_output.content)
+        return response.content
 
     except json.JSONDecodeError as e:
-        logger.error(f"JSON Decode Error: {e}")
-        logger.debug(f"Raw Response: {response.choices[0].message.content}")
+        error_msg = f"JSON Decode Error: {str(e)}"
+        logger.error(f"{error_msg}\nRaw Response: {response.choices[0].message.content}\n{traceback.format_exc()}")
         return None
     except openai.APIConnectionError as e:
-        logger.error(f"Failed to connect to OpenAI API: {e}")
+        error_msg = f"Failed to connect to OpenAI API: {str(e)}"
+        logger.error(f"{error_msg}\n{traceback.format_exc()}")
         return None
     except openai.APIError as e:
-        logger.error(f"OpenAI API returned an API Error: {e}")
+        error_msg = f"OpenAI API returned an API Error: {str(e)}"
+        logger.error(f"{error_msg}\n{traceback.format_exc()}")
         return None
     except openai.RateLimitError as e:
-        logger.error(f"OpenAI API request exceeded rate limit: {e}")
+        error_msg = f"OpenAI API request exceeded rate limit: {str(e)}"
+        logger.error(f"{error_msg}\n{traceback.format_exc()}")
         return None
     except Exception as e:
-        logger.error(f"An unexpected error occurred: {e}")
+        error_msg = f"An unexpected error occurred: {str(e)}"
+        logger.error(f"{error_msg}\n{traceback.format_exc()}")
         return None
 
 def generate_answer_analysis(answer_text: str) -> Optional[dict]:
@@ -182,15 +186,15 @@ def generate_answer_analysis(answer_text: str) -> Optional[dict]:
             temperature=0.2
         )
         
-        json_response = response.choices[0].message
-
-        if json_response.refusal:
-            logger.error(f"OpenAI API refused to analyze answer: {json_response.refusal}")
-            raise Exception("OpenAI API refused to analyze answer")
+        if response.refusal:
+            error_msg = f"OpenAI API refused to analyze answer: {response.refusal}"
+            logger.error(f"{error_msg}\n{traceback.format_exc()}")
+            raise Exception(error_msg)
 
         logger.info("Successfully generated answer analysis")
-        return json_response.content
+        return response.content
 
     except Exception as e:
-        logger.error(f"Error generating answer analysis: {str(e)}")
+        error_msg = f"Error generating answer analysis: {str(e)}"
+        logger.error(f"{error_msg}\n{traceback.format_exc()}")
         return None
