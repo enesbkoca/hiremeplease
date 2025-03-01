@@ -98,7 +98,8 @@ def generate_response(job_description: str) -> Optional[dict]:
         )
         
         logger.info("Successfully generated interview questions")
-        return response.model_dump()
+        json_output = response.choices[0].message
+        return json.loads(json_output.content)
 
     except json.JSONDecodeError as e:
         error_msg = f"JSON Decode Error: {str(e)}"
@@ -182,7 +183,8 @@ def generate_answer_analysis(answer_text: str) -> Optional[dict]:
         )
 
         logger.info("Successfully generated answer analysis")
-        return response.model_dump()
+        json_output = response.choices[0].message
+        return json.loads(json_output.content)
 
     except Exception as e:
         error_msg = f"Error generating answer analysis: {str(e)}"
