@@ -1,0 +1,12 @@
+2025-03-01 12:15:35 | INFO     | api.index:create_job:68 - Creating new job with ID: f240901e-a0a9-4800-8075-a770d6edcfaa 
+ with prompt: system rel engineer
+2025-03-01 12:15:35 | DEBUG    | api.index:create_job:79 - Job f240901e-a0a9-4800-8075-a770d6edcfaa successfully queued
+2025-03-01 12:15:35 | DEBUG    | api.index:get_job:88 - Fetching job f240901e-a0a9-4800-8075-a770d6edcfaa
+2025-03-01 12:15:35 | DEBUG    | api.index:get_job:88 - Fetching job f240901e-a0a9-4800-8075-a770d6edcfaa
+2025-03-01 12:15:35 | DEBUG    | api.index:get_job:102 - Requesting speech token
+2025-03-01 12:15:36 | DEBUG    | api.index:get_job:102 - Requesting speech token
+2025-03-01 12:15:36 | INFO     | api.index:get_job:112 - Successfully retrieved job f240901e-a0a9-4800-8075-a770d6edcfaa
+2025-03-01 12:15:36 | INFO     | api.index:get_job:112 - Successfully retrieved job f240901e-a0a9-4800-8075-a770d6edcfaa
+2025-03-01 12:15:38 | DEBUG    | api.index:get_job:88 - Fetching job f240901e-a0a9-4800-8075-a770d6edcfaa
+2025-03-01 12:15:38 | DEBUG    | api.index:get_job:102 - Requesting speech token
+2025-03-01 12:15:38 | INFO     | api.index:get_job:112 - Successfully retrieved job f240901e-a0a9-4800-8075-a770d6edcfaa

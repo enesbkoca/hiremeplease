@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useSpeechRecognition } from '@/hooks/useSpeechRecognition';
 import { useSpeechToken } from '@/context/SpeechTokenContext';
+import { logger } from '@/utils/logger';
 
 import axios from 'axios';
 import { FaMicrophone, FaStop, FaKeyboard, FaRedo, FaPaperPlane } from 'react-icons/fa';
@@ -65,10 +66,12 @@ export const QuestionPopup: React.FC<QuestionPopupProps> = ({ question, onClose,
 
     useEffect(() => {
         if (inputMethod === InputMethod.Voice && recordingState === RecordingState.Recording) {
+            logger.info('Starting recording countdown');
             setCountdown(totalCountdownTime);
             const interval = setInterval(() => {
                 setCountdown((prevCountdown) => {
                     if (prevCountdown <= 1) {
+                        logger.info('Recording time limit reached');
                         clearInterval(interval);
                         setCountdownInterval(null);
                         stopRecording();
@@ -91,21 +94,26 @@ export const QuestionPopup: React.FC<QuestionPopupProps> = ({ question, onClose,
 
     useEffect(() => {
         if (inputMethod === InputMethod.Voice && isRecording && recordingState !== RecordingState.Recording) {
+            logger.info('Started recording');
             setRecordingState(RecordingState.Recording);
         } else if (inputMethod === InputMethod.Voice && !isRecording && recordingState === RecordingState.Recording) {
+            logger.info('Stopped recording');
             setRecordingState(RecordingState.Stopped);
         }
     }, [inputMethod, isRecording, recordingState]);
 
     const handleRecordButtonClick = () => {
+        logger.debug('Record button clicked');
         startRecording();
     };
 
     const handleStopButtonClick = () => {
+        logger.debug('Stop button clicked');
         stopRecording();
     };
 
     const handleReRecord = () => {
+        logger.debug('Re-recording initiated');
         setTranscription('');
         setRecordingState(RecordingState.Initial);
         setInputMethod(InputMethod.Voice);
@@ -114,29 +122,35 @@ export const QuestionPopup: React.FC<QuestionPopupProps> = ({ question, onClose,
     const handleSubmit = async () => {
         const answerText = transcription.trim();
         if (answerText === '') {
+            logger.warn('Attempted to submit empty answer');
             alert('Please enter or record your answer.');
             return;
         }
 
         try {
+            logger.info('Submitting answer for analysis');
             setIsLoading(true);
             const res = await axios.post('/api/analyze-answer', { answer_text: answerText });
             const parsedResponse: AnalysisResponse = JSON.parse(res.data.analysis);
             setResponse(parsedResponse);
             setIsLoading(false);
             setApiError(null);
+            logger.info('Answer analysis completed successfully');
             onSubmit();
         } catch (err) {
-            console.error('API call failed:', err);
+            logger.error('API call failed:', { error: err });
             setApiError('Failed to analyze answer. Please try again.');
+            setIsLoading(false);
         }
     };
 
     const handleEnterTextManually = () => {
+        logger.debug('Switching to manual text input');
         setInputMethod(InputMethod.Text);
     };
 
     const handleUseVoiceInput = () => {
+        logger.debug('Switching to voice input');
         setInputMethod(InputMethod.Voice);
         setTranscription('');
         setRecordingState(RecordingState.Initial);

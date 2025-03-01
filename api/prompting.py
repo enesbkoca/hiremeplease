@@ -1,16 +1,20 @@
 import os
 import json
+import traceback
 
 import openai
-
 from openai import OpenAI
 from dotenv import load_dotenv
+
+from .logger_config import get_logger
+
+logger = get_logger()
 
 load_dotenv()
 
 from enum import Enum
 from pydantic import BaseModel, Field, ConfigDict
-from typing import List
+from typing import List, Optional
 
 class BehavioralQuestion(BaseModel):
     question: str
@@ -58,10 +62,14 @@ class Feedback(BaseModel):
 
 
 # Initialize OpenAI API client
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+try:
+    client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+    logger.info("OpenAI client initialized successfully")
+except Exception as e:
+    logger.error(f"Failed to initialize OpenAI client: {str(e)}\n{traceback.format_exc()}")
+    raise
 
-
-def generate_response(job_description):
+def generate_response(job_description: str) -> Optional[dict]:
     """
     Generates structured interview questions based on a job description using OpenAI Chat Completion.
 
@@ -71,6 +79,7 @@ def generate_response(job_description):
     Returns:
         A dictionary representing the structured JSON output, or None if an error occurs.
     """
+    logger.debug(f"Generating response for job description of length: {len(job_description)}")
 
     prompt = {
         "role": "system",
@@ -80,42 +89,45 @@ def generate_response(job_description):
     user_message = {"role": "user", "content": job_description}
 
     try:
+        logger.info("Sending request to OpenAI API")
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[prompt, user_message],
             response_format=InterviewPreparation,
-            temperature = 0.2
+            temperature=0.2
         )
 
-        json_output = response.choices[0].message
+        if response.refusal:
+            error_msg = f"OpenAI API refused to generate a response: {response.refusal}"
+            logger.error(error_msg)
+            raise Exception(error_msg)
         
-        if json_output.refusal:
-            print(f"OpenAI API refused to generate a response: {json_output.refusal}")
-            raise Exception("OpenAI API refused to generate a response")
-        else:
-            return(json.loads(json_output.content))
+        logger.info("Successfully generated interview questions")
+        return response.content
 
     except json.JSONDecodeError as e:
-        print(f"JSON Decode Error: {e}")
-        print(f"Raw Response: {response.choices[0].message.content}")
-        pass
+        error_msg = f"JSON Decode Error: {str(e)}"
+        logger.error(f"{error_msg}\nRaw Response: {response.choices[0].message.content}\n{traceback.format_exc()}")
+        return None
     except openai.APIConnectionError as e:
-        # Handle connection error here
-        print(f"Failed to connect to OpenAI API: {e}")
-        pass
+        error_msg = f"Failed to connect to OpenAI API: {str(e)}"
+        logger.error(f"{error_msg}\n{traceback.format_exc()}")
+        return None
     except openai.APIError as e:
-        # Handle API error here, e.g. retry or log
-        print(f"OpenAI API returned an API Error: {e}")
-        pass
+        error_msg = f"OpenAI API returned an API Error: {str(e)}"
+        logger.error(f"{error_msg}\n{traceback.format_exc()}")
+        return None
     except openai.RateLimitError as e:
-        # Handle rate limit error (we recommend using exponential backoff)
-        print(f"OpenAI API request exceeded rate limit: {e}")
-        pass
+        error_msg = f"OpenAI API request exceeded rate limit: {str(e)}"
+        logger.error(f"{error_msg}\n{traceback.format_exc()}")
+        return None
     except Exception as e:
-        print(f"An unexpected error occurred: {e}")
-        pass
-    
-def generate_answer_analysis(answer_text):
+        error_msg = f"An unexpected error occurred: {str(e)}"
+        logger.error(f"{error_msg}\n{traceback.format_exc()}")
+        return None
+
+def generate_answer_analysis(answer_text: str) -> Optional[dict]:
+    logger.debug(f"Analyzing answer of length: {len(answer_text)}")
     
     prompt = {
         "role": "system",
@@ -166,7 +178,7 @@ def generate_answer_analysis(answer_text):
     user_message = {"role": "user", "content": answer_text}
 
     try:
-        
+        logger.info("Sending answer analysis request to OpenAI API")
         response = client.beta.chat.completions.parse(
             model="gpt-4o-mini",
             messages=[prompt, user_message],
@@ -174,14 +186,15 @@ def generate_answer_analysis(answer_text):
             temperature=0.2
         )
         
-        json_response = response.choices[0].message
+        if response.refusal:
+            error_msg = f"OpenAI API refused to analyze answer: {response.refusal}"
+            logger.error(f"{error_msg}\n{traceback.format_exc()}")
+            raise Exception(error_msg)
 
-        if json_response.refusal:
-            print(f"OpenAI API refused to generate a response: {json_response.refusal}")
-            raise Exception("OpenAI API refused to generate a response")
-        else:
-            return json_response.content
+        logger.info("Successfully generated answer analysis")
+        return response.content
 
     except Exception as e:
-        print(f"An error occurred: {e}")
+        error_msg = f"Error generating answer analysis: {str(e)}"
+        logger.error(f"{error_msg}\n{traceback.format_exc()}")
         return None
