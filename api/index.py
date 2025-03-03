@@ -54,7 +54,7 @@ def index():
     logger.debug("API index endpoint called")
     return "<p>Welcome to the API!</p>"
 
-@app.route('/api/create-job', methods=['POST'])
+@app.route('/api/jobs', methods=['POST'])
 def create_job():
     try:
         data = request.json
@@ -75,7 +75,7 @@ def create_job():
 
         redis_conn.hset("jobs", description_id, json.dumps(job_data))
         q.enqueue(generate_and_store_questions, description_id, description)
-        
+
         logger.debug(f"Job {description_id} successfully queued")
         return jsonify({"jobId": description_id})
     except Exception as e:
@@ -98,24 +98,24 @@ def get_job(job_id):
         }
 
         token_url = f"https://{os.getenv('NEXT_PUBLIC_SPEECH_REGION')}.api.cognitive.microsoft.com/sts/v1.0/issueToken"
-        
+
         logger.debug("Requesting speech token")
         token_response = requests.post(token_url, headers=headers)
-        
+
         if not token_response.ok:
             logger.error(f"Failed to get speech token: {token_response.status_code}")
             return jsonify({"error": "Failed to get speech token"}), 500
 
         job_data = json.loads(job_data_json)
         job_data["speech_token"] = token_response.text
-        
+
         logger.info(f"Successfully retrieved job {job_id}")
         return jsonify(job_data)
     except Exception as e:
         logger.error(f"Error retrieving job {job_id}: {str(e)}")
         return jsonify({"error": "Internal server error"}), 500
 
-@app.route('/api/analyze-answer', methods=['POST'])
+@app.route('/api/analyses', methods=['POST'])
 def analyze_answer():
     try:
         data = request.json

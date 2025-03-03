@@ -19,7 +19,7 @@ export default function Home() {
             const jobDescriptionValue = jobDescriptionElement.value;
 
             // Send job description to the server
-            const response = await fetch("/api/create-job", {
+            const response = await fetch("/api/jobs", {
                 method: "POST",
                 headers: {"Content-Type": "application/json"},
                 body: JSON.stringify({description: jobDescriptionValue}),
