@@ -3,6 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation'
+import AuthPanel from './AuthPanel';
 
 import GoBackButton from "@/components/GoBackButton";
 
@@ -12,6 +13,9 @@ const Header: React.FC = () => {
 
     return (
         <header className="flex justify-between items-center w-full p-4">
+            <div className="absolute top-4 right-4">
+                <AuthPanel />
+            </div>
             <Link href="/">
                 <div className="flex items-center gap-2">
                     <svg
