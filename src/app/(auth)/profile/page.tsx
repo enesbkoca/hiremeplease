@@ -20,7 +20,7 @@ export default function Profile() {
 
     return (
         <div className="flex flex-col items-center gap-4">
-            <div className="text-white">Logged in as {session.user.email}</div>
+            <div className="text-black">Logged in as {session.user.email}</div>
             <button
                 onClick={() => {
                     supabase.auth.signOut()
