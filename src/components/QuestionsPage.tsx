@@ -55,6 +55,8 @@ export default function QuestionsPage({ jobId }: { jobId: string }) {
     const { setIsLoading } = useLoading();
 
     useEffect(() => {
+        // Start with loading state active
+        setIsLoading(true);
         let timeoutId: NodeJS.Timeout | null = null;
         let isCancelled = false;
 
@@ -94,8 +96,10 @@ export default function QuestionsPage({ jobId }: { jobId: string }) {
         return () => {
             if (timeoutId) clearTimeout(timeoutId);
             isCancelled = true;
+            // Make sure to reset loading state on unmount
+            setIsLoading(false);
         };
-    }, [jobId]);
+    }, [jobId, setIsLoading]);
 
     if (error) {
         logger.warn(`Rendering error state: ${error}`);
@@ -120,4 +124,4 @@ export default function QuestionsPage({ jobId }: { jobId: string }) {
             )}
         </>
     );
-} 
+}
