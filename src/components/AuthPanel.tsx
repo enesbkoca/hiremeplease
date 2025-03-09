@@ -9,16 +9,10 @@ const AuthPanel: React.FC = () => {
   return (
     <div className="flex gap-4 items-center">
       <button 
-        className="px-4 py-2 rounded-md text-gray-800 bg-gray-100 hover:bg-gray-200 transition-colors"
-        onClick={() => router.push('/signin')}
-      >
-        Sign In
-      </button>
-      <button 
         className="px-4 py-2 rounded-md text-white bg-blue-600 hover:bg-blue-700 transition-colors"
-        onClick={() => router.push('/signup')}
+        onClick={() => router.push('/login')}
       >
-        Sign Up
+        Log In
       </button>
     </div>
   );
