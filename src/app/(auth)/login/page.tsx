@@ -5,11 +5,7 @@ import { createClient } from '@supabase/supabase-js'
 import { Session } from '@supabase/supabase-js'
 import { logger } from '@/utils/logger';
 import { useRouter } from 'next/navigation'
-
-// Create a supabase client
-const supaURL : string = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
-const supaAnonKey : string = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
-const supabase = createClient(supaURL, supaAnonKey)
+import { supabase } from '@/utils/supabase';
 
 export default function App() {
   // Define state variables
