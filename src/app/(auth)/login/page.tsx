@@ -51,7 +51,7 @@ export default function App() {
     if (error) {
       setError(error.message)
     } else {
-      router.push(`/signup/otp-verification?email=${encodeURIComponent(email)}`)
+      router.push(`/login/otp-verification?email=${encodeURIComponent(email)}`)
     }
     setLoading(false)
   }

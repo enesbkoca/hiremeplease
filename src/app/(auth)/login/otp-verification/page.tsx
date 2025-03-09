@@ -35,7 +35,7 @@ export default function OtpPage() {
             {error}
           </div>
         )}
-        <OtpVerification email={email} onBack={() => router.push('/signup')} supabase={supabase} />
+        <OtpVerification email={email} onBack={() => router.push('/login')} supabase={supabase} />
       </div>
     </div>
   )
