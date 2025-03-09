@@ -20,7 +20,7 @@ export const LoadingProvider = ({ children }: { children: ReactNode }) => {
         <LoadingContext.Provider value={{ isLoading, setIsLoading }}>
             {children}
             {isLoading && (
-                <div className="fixed inset-0 flex items-center justify-center bg-white z-50">
+                <div className="absolute inset-0 flex items-center justify-center bg-white pointer-events-none">
                     <LoadingIndicator size={50}/>
                 </div>
             )}

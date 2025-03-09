@@ -43,30 +43,21 @@ export default function Home() {
         e.preventDefault();
         setIsLoading(true);
 
-        try {
-            if (e.currentTarget.elements && "jobDescription" in e.currentTarget.elements) {
-                const jobDescriptionElement = e.currentTarget.elements.jobDescription as HTMLTextAreaElement;
-                const jobDescriptionValue = jobDescriptionElement.value;
+        if (e.currentTarget.elements && "jobDescription" in e.currentTarget.elements) {
+            const jobDescriptionElement = e.currentTarget.elements.jobDescription as HTMLTextAreaElement;
+            const jobDescriptionValue = jobDescriptionElement.value;
 
-                // Send job description to the server
-                const response = await fetch("/api/jobs", {
-                    method: "POST",
-                    headers: {"Content-Type": "application/json"},
-                    body: JSON.stringify({description: jobDescriptionValue}),
-                });
+            // Send job description to the server
+            const response = await fetch("/api/jobs", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({description: jobDescriptionValue}),
+            });
 
-                if (!response.ok) {
-                    throw new Error('Failed to create job');
-                }
-
-                const {jobId} = await response.json();
-                router.push(`/job/${jobId}`); // Redirect to the job page
-            } else {
-                console.error("jobDescription element not found in form.");
-                setIsLoading(false);
-            }
-        } catch (error) {
-            console.error("Error submitting job description:", error);
+            const {jobId} = await response.json();
+            router.push(`/job/${jobId}`); // Redirect to the job page
+        } else {
+            console.error("jobDescription element not found in form.");
             setIsLoading(false);
         }
     };

@@ -35,7 +35,7 @@ export default function RootLayout({
         <body className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen`}>
             <Header/>
             <main className="flex-grow">
-                <div className="flex justify-center items-start py-8 sm:py-20 w-full">
+                <div className="relative flex-grow min-h-[70vh] flex justify-center items-start py-8 sm:py-20 w-full">
                     <div className="max-w-6xl w-full px-4">
                         <LoadingProvider>
                             {children}
