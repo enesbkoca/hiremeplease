@@ -2,8 +2,8 @@ import { PacmanLoader } from "react-spinners";
 
 const LoadingIndicator = ({ size }: { size: number }) => {
     return (
-        <div className="flex justify-center items-center h-full">
-            <PacmanLoader color="#36D7B7" size={size} />
+        <div className="flex justify-center items-center">
+            <PacmanLoader color="#3B82F6" size={size} margin={10} />
         </div>
     );
 };
