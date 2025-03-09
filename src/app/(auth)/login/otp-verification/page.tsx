@@ -11,7 +11,7 @@ const supaAnonKey : string = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
 const supabase = createClient(supaURL, supaAnonKey)
 
 export default function OtpPage() {
-  const [error, setError] = useState<string | null>(null)
+  const [error] = useState<string | null>(null)
   const router = useRouter();
   const [email, setEmail] = useState<string>('');
 
