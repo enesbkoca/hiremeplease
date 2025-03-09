@@ -14,6 +14,13 @@
   }
 }
 
+.hidden { display: none; }
+.block { display: block; }
+
+html, body {
+  height: 100%;
+}
+
 body {
   color: var(--foreground);
   background: var(--background);

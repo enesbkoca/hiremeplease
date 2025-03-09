@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { UserInput } from '@/components/UserInput';
 import { useLoading } from '@/context/LoadingContext';
@@ -37,7 +37,8 @@ const testimonials = [
 export default function Home() {
     const router = useRouter();
     const [jobDescription, setJobDescription] = useState("");
-    const { setIsLoading } = useLoading();
+    const { setIsLoading, isLoading } = useLoading();
+
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -63,7 +64,11 @@ export default function Home() {
     };
 
     return (
-        <div className="w-full space-y-16">
+        <main
+        className={`flex flex-col gap-8 row-start-2 items-center sm:items-start ${
+            isLoading ? 'hidden' : 'block'
+        }`}
+        >
             {/* Hero Section - Side by Side */}
             <section className="pt-8 sm:pt-16 pb-16">
                 <div className="max-w-6xl mx-auto px-6">
@@ -244,6 +249,6 @@ export default function Home() {
                     </a>
                 </div>
             </section>
-        </div>
+        </main>
     );
 }
