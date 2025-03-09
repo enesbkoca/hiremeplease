@@ -2,6 +2,9 @@ const nextConfig = {
     outputFileTracingIncludes: {
         '/api/**/*': ['./api/**/*', './requirements.txt'],
     },
+    images: {
+        domains: ['randomuser.me'],
+    },
     rewrites: async () => {
         return [
             {
