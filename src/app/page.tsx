@@ -70,8 +70,8 @@ export default function Home() {
         }`}
         >
             {/* Hero Section - Side by Side */}
-            <section className="pt-8 sm:pt-16 pb-16">
-                <div className="max-w-6xl mx-auto px-6">
+            <section className="pt-8 sm:pt-12 pb-16">
+                <div className="max-w-6xl mx-auto px-4">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
                         {/* Left Side - Text Content */}
                         <div>
@@ -120,7 +120,7 @@ export default function Home() {
             </section>
             
             {/* How it Works Section - with 4 steps */}
-            <section className="bg-gray-50 py-16 rounded-xl">
+            <section className="bg-gray-50 py-12 rounded-xl">
                 <div className="max-w-6xl mx-auto px-6">
                     <h2 className="text-3xl font-bold text-center mb-12">How It Works</h2>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
@@ -157,7 +157,7 @@ export default function Home() {
             </section>
 
             {/* Features Section - Side by Side */}
-            <section className="max-w-6xl mx-auto px-6 py-8">
+            <section className="max-w-6xl mx-auto px-6 py-14">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
                     <div>
                         <div className="p-1 rounded-2xl bg-gradient-to-r from-blue-500 to-indigo-600 shadow-lg">
@@ -213,7 +213,7 @@ export default function Home() {
             </section>
 
             {/* Testimonials Section */}
-            <section className="max-w-6xl mx-auto px-6">
+            <section className="max-w-6xl mx-auto px-6 pt-8 pb-14">
                 <h2 className="text-3xl font-bold text-center mb-12">Success Stories</h2>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     {testimonials.map((testimonial) => (

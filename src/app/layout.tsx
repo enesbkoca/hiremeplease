@@ -36,7 +36,7 @@ export default function RootLayout({
             <Header/>
             <main className="flex-grow">
                 <div className="relative flex-grow h-full flex justify-center items-start">
-                    <div className="max-w-6xl w-full px-4 py-8 sm:py-20">
+                    <div className="max-w-6xl w-full px-4 py-8 sm:py-10">
                         <LoadingProvider>
                             {children}
                         </LoadingProvider>
