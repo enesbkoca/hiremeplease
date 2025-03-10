@@ -38,47 +38,47 @@ export default function OtpVerification({ email, onBack, supabase }: OtpVerifica
   }
 
   return (
-    <>
-      {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
-          {error}
-        </div>
-      )}
-      <form onSubmit={handleVerifyOTP} className="mt-8 space-y-6">
-        <div>
-          <label htmlFor="otp" className="sr-only">
-            Enter OTP
-          </label>
-          <input
-            id="otp"
-            name="otp"
-            type="text"
-            required
-            value={otp}
-            onChange={(e) => setOtp(e.target.value)}
-            className="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-white bg-gray-700 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
-            placeholder="Enter OTP"
-          />
-        </div>
-        <div>
-          <button
-            type="submit"
-            disabled={loading}
-            className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
-          >
-            {loading ? 'Verifying...' : 'Verify OTP'}
-          </button>
-        </div>
-        <div className="text-center">
-          <button
-            type="button"
-            onClick={onBack}
-            className="text-indigo-400 hover:text-indigo-300 text-sm"
-          >
-            Use different email
-          </button>
-        </div>
-      </form>
-    </>
+      <>
+        {error && (
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4">
+              {error}
+            </div>
+        )}
+        <form onSubmit={handleVerifyOTP} className="mt-8 space-y-6">
+          <div>
+            <label htmlFor="otp" className="sr-only">
+              Enter OTP
+            </label>
+            <input
+                id="otp"
+                name="otp"
+                type="text"
+                required
+                value={otp}
+                onChange={(e) => setOtp(e.target.value)}
+                className="appearance-none bg-gray-50 border border-gray-200 rounded w-full py-2 px-3 text-gray-500 leading-tight focus:outline-none focus:border-indigo-500" // **Hardcoded Input Style**
+                placeholder="Enter OTP"
+            />
+          </div>
+          <div>
+            <button
+                type="submit"
+                disabled={loading}
+                className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-semibold rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50" // **Hardcoded Button Style**
+            >
+              {loading ? 'Verifying...' : 'Verify OTP'}
+            </button>
+          </div>
+          <div className="text-center">
+            <button
+                type="button"
+                onClick={onBack}
+                className="inline-block text-sm font-medium text-indigo-600 hover:text-indigo-800" // Keep link style
+            >
+              Use different email
+            </button>
+          </div>
+        </form>
+      </>
   )
 }

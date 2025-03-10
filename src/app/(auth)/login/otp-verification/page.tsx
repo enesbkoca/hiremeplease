@@ -22,34 +22,51 @@ export default function OtpPage() {
       setEmail(decodeURIComponent(emailParam));
     }
 
-    const newUser = new URLSearchParams(window.location.search).get('newUser');
-    if (newUser) {
-      setIsNewUser(newUser === 'true');
+    const newUserParam = new URLSearchParams(window.location.search).get('newUser');
+    if (newUserParam) {
+      setIsNewUser(newUserParam === 'true');
     }
 
   }, []);
 
   return (
-      <div className="min-h-screen flex items-center justify-center ">
-        <div className="max-w-md w-full space-y-8 p-8 rounded-xl shadow-lg bg-gray-200">
+      <div className="min-h-[80vh] flex items-center justify-center bg-gray-50">
+        <div className="max-w-md w-full p-8 rounded-xl shadow-lg bg-white border border-gray-100 space-y-6">
           {isNewUser && (
-              <div className="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-4 rounded-r-lg" role="alert">
-                <p className="font-bold">Welcome!</p>
-                <p>Thanks for signing up to HireMePlease.</p>
+              <div className="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded-r-lg" role="alert">
+                <p className="font-semibold">Welcome to Hire Me Please!</p>
+                <p className="text-sm">You are signing up for the first time. Verify your email to complete signup.</p>
               </div>
           )}
           <div>
-            <h2 className="mt-6 text-center text-3xl font-extrabold text-black">
-              Verify your OTP
+            <h2 className="mt-6 text-center text-2xl font-bold text-indigo-600">
+              Verify Your Email
             </h2>
+            <p className="mt-2 text-center text-gray-700">
+              Enter the verification code sent to your email address.
+            </p>
           </div>
           {error && (
-              <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
+              <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4"> {/* Keep error box */}
                 {error}
               </div>
           )}
-          <OtpVerification email={email} onBack={() => router.push('/login')} supabase={supabase} />
+          <div className="space-y-4">
+            <OtpVerification
+                email={email}
+                onBack={() => router.push('/login')}
+                supabase={supabase}
+            />
+            <div className="text-center mt-2"> {/* Keep text-center and mt-2 */}
+              <button
+                  onClick={() => router.push('/login')}
+                  className="inline-block text-sm font-medium text-indigo-600 hover:text-indigo-800" // Keep back to login button
+              >
+                Back to Login
+              </button>
+            </div>
+          </div>
         </div>
       </div>
-  )
+  );
 }
