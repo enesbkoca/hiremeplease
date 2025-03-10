@@ -14,7 +14,6 @@ export default function OtpPage() {
   const [error] = useState<string | null>(null)
   const router = useRouter();
   const [email, setEmail] = useState<string>('');
-  const [isNewUser, setIsNewUser] = useState<boolean>(false);
 
   useEffect(() => {
     const emailParam = new URLSearchParams(window.location.search).get('email');
@@ -22,22 +21,11 @@ export default function OtpPage() {
       setEmail(decodeURIComponent(emailParam));
     }
 
-    const newUserParam = new URLSearchParams(window.location.search).get('newUser');
-    if (newUserParam) {
-      setIsNewUser(newUserParam === 'true');
-    }
-
   }, []);
 
   return (
       <div className="min-h-[80vh] flex items-center justify-center bg-gray-50">
         <div className="max-w-md w-full p-8 rounded-xl shadow-lg bg-white border border-gray-100 space-y-6">
-          {isNewUser && (
-              <div className="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded-r-lg" role="alert">
-                <p className="font-semibold">Welcome to Hire Me Please!</p>
-                <p className="text-sm">You are signing up for the first time. Verify your email to complete signup.</p>
-              </div>
-          )}
           <div>
             <h2 className="mt-6 text-center text-2xl font-bold text-indigo-600">
               Verify Your Email
@@ -60,7 +48,7 @@ export default function OtpPage() {
             <div className="text-center mt-2"> {/* Keep text-center and mt-2 */}
               <button
                   onClick={() => router.push('/login')}
-                  className="inline-block text-sm font-medium text-indigo-600 hover:text-indigo-800" // Keep back to login button
+                  className="inline-block text-sm font-medium text-indigo-600 hover:text-indigo-800" // Keep back to log in button
               >
                 Back to Login
               </button>
