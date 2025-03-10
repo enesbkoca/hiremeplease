@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { Session } from '@supabase/supabase-js'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/utils/supabase';
+import {logger} from "@/utils/logger";
 
 export default function App() {
   // Define state variables
@@ -35,7 +36,7 @@ export default function App() {
     setLoading(true)
     setError(null)
 
-    const { error } = await supabase.auth.signInWithOtp({
+    const { data, error } = await supabase.auth.signInWithOtp({
       email,
       options: {
         shouldCreateUser: true,
@@ -45,7 +46,10 @@ export default function App() {
     if (error) {
       setError(error.message)
     } else {
-      router.push(`/login/otp-verification?email=${encodeURIComponent(email)}`)
+      const newUser = (data?.user === null) && (data?.session === null);
+      logger.info(`New user signed up: ${newUser}`);
+
+      router.push(`/login/otp-verification?email=${encodeURIComponent(email)}&newUser=${newUser}`);
     }
     setLoading(false)
   }

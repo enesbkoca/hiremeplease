@@ -14,29 +14,42 @@ export default function OtpPage() {
   const [error] = useState<string | null>(null)
   const router = useRouter();
   const [email, setEmail] = useState<string>('');
+  const [isNewUser, setIsNewUser] = useState<boolean>(false);
 
   useEffect(() => {
     const emailParam = new URLSearchParams(window.location.search).get('email');
     if (emailParam) {
       setEmail(decodeURIComponent(emailParam));
     }
+
+    const newUser = new URLSearchParams(window.location.search).get('newUser');
+    if (newUser) {
+      setIsNewUser(newUser === 'true');
+    }
+
   }, []);
 
   return (
-    <div className="min-h-screen flex items-center justify-center ">
-      <div className="max-w-md w-full space-y-8 p-8 rounded-xl shadow-lg bg-gray-200">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-black">
-            Verify your OTP
-          </h2>
-        </div>
-        {error && (
-          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
-            {error}
+      <div className="min-h-screen flex items-center justify-center ">
+        <div className="max-w-md w-full space-y-8 p-8 rounded-xl shadow-lg bg-gray-200">
+          {isNewUser && (
+              <div className="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-4 rounded-r-lg" role="alert">
+                <p className="font-bold">Welcome!</p>
+                <p>Thanks for signing up to HireMePlease.</p>
+              </div>
+          )}
+          <div>
+            <h2 className="mt-6 text-center text-3xl font-extrabold text-black">
+              Verify your OTP
+            </h2>
           </div>
-        )}
-        <OtpVerification email={email} onBack={() => router.push('/login')} supabase={supabase} />
+          {error && (
+              <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
+                {error}
+              </div>
+          )}
+          <OtpVerification email={email} onBack={() => router.push('/login')} supabase={supabase} />
+        </div>
       </div>
-    </div>
   )
 }
