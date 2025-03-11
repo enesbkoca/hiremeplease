@@ -5,29 +5,12 @@ import { useRouter } from 'next/navigation';
 import { Session } from '@supabase/supabase-js'
 import { supabase } from '@/utils/supabase';
 import { logger } from '@/utils/logger';
+import { useHeaderContext } from '@/context/HeaderContext';
 
 const AuthPanel: React.FC = () => {
   const router = useRouter();
-  const [session, setSession] = useState<Session | null>(null);
+  const { session } = useHeaderContext();
 
-  useEffect(() => {
-    const getSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      setSession(session);
-      logger.info('Get session:', { session });
-    };
-
-    getSession();
-
-    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
-      setSession(session);
-      logger.info('Auth state change:', { event, session });
-    });
-
-    return () => {
-      authListener.subscription.unsubscribe();
-    };
-  }, []);
 
   const handleAuthAction = () => {
     if (session) {
