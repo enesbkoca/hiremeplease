@@ -9,7 +9,7 @@ import GoBackButton from "@/components/GoBackButton";
 
 const Header: React.FC = () => {
     const pathname = usePathname()
-    const isJobDetailPage = pathname.startsWith('/job/');
+    const isJobDetailPage = pathname?.startsWith('/job/') ?? false;
 
     return (
         <header className="flex justify-between items-center w-full p-4">

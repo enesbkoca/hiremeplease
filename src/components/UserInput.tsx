@@ -1,9 +1,12 @@
+'use client'
+
 import React from 'react';
+import { useRouter } from 'next/navigation';
+import { useLoading } from '@/context/LoadingContext';
 
 interface UserInputProp {
     jobDescription: string;
     onJobDescriptionChange: (description: string) => void;
-    handleSubmit: (event: React.FormEvent<HTMLFormElement>) => void;
 }
 
 const exampleJobDescription = `Job Title: Senior Frontend Developer
@@ -29,10 +32,34 @@ Responsibilities:
 export const UserInput: React.FC<UserInputProp> = ({
                                                      jobDescription,
                                                      onJobDescriptionChange,
-                                                     handleSubmit
                                                    }) => {
+    const { setIsLoading } = useLoading();
+    const router = useRouter();
     const handlePasteExample = () => {
         onJobDescriptionChange(exampleJobDescription);
+    };
+
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        setIsLoading(true);
+
+        if (e.currentTarget.elements && "jobDescription" in e.currentTarget.elements) {
+            const jobDescriptionElement = e.currentTarget.elements.jobDescription as HTMLTextAreaElement;
+            const jobDescriptionValue = jobDescriptionElement.value;
+
+            // Send job description to the server
+            const response = await fetch("/api/jobs", {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({description: jobDescriptionValue}),
+            });
+
+            const {jobId} = await response.json();
+            router.push(`/job/${jobId}`); // Redirect to the job page
+        } else {
+            console.error("jobDescription element not found in form.");
+            setIsLoading(false);
+        }
     };
     
     return (

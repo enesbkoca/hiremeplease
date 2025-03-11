@@ -3,6 +3,7 @@ import localFont from "next/font/local";
 import "@/app/globals.css";
 
 import { Analytics } from '@vercel/analytics/react';
+import { SessionProvider} from '@/context/SessionContext';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 
@@ -32,22 +33,24 @@ export default function RootLayout({
 
     return (
         <html lang="en">
-        <body className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen`}>
-            <Header/>
-            <main className="flex-grow">
-                <div className="relative flex-grow h-full flex justify-center items-start">
-                    <div className="max-w-6xl w-full px-4 py-8 sm:py-10">
-                        <LoadingProvider>
-                            {children}
-                        </LoadingProvider>
+        <SessionProvider>
+            <body className={`${geistSans.variable} ${geistMono.variable} antialiased flex flex-col min-h-screen`}>
+                    <Header/>
+                <main className="flex-grow">
+                    <div className="relative flex-grow h-full flex justify-center items-start">
+                        <div className="max-w-6xl w-full px-4 py-8 sm:py-10">
+                            <LoadingProvider>
+                                {children}
+                            </LoadingProvider>
+                        </div>
                     </div>
+                </main>
+                <Footer/>
+                <div className="analyticsComponent">
+                    <Analytics/>
                 </div>
-            </main>
-            <Footer/>
-            <div className="analyticsComponent">
-                <Analytics/>
-            </div>
-        </body>
+            </body>
+        </SessionProvider>
         </html>
     );
 }
