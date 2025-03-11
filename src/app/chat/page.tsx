@@ -9,7 +9,7 @@ import { logger } from '@/utils/logger'
 
 export default function ChatPage() {
     const router = useRouter();
-    const [isLoading, setIsLoading] = useState(false);
+    const [_, setIsLoading] = useState(false);
     const [jobDescription, setJobDescription] = useState("");
     const [session, setSession] = useState<Session | null>(null)
 
