@@ -3,7 +3,6 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/utils/supabase';
-import { logger } from '@/utils/logger';
 import { useSessionContext } from '@/context/SessionContext';
 
 const AuthPanel: React.FC = () => {
