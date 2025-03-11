@@ -7,13 +7,21 @@ import { supabase } from '@/utils/supabase';
 const SessionContext = createContext<{
     session: Session | null;
     setSession: (session: Session | null) => void;
+    getUserEmail: () => string | null;
 }>({
     session: null,
-    setSession: () => { }
+    setSession: () => { },
+    getUserEmail: () => null,
 });
 
 export const SessionProvider = ({ children }: { children: ReactNode }) => {
     const [session, setSession] = useState<Session | null>(null);
+    const getUserEmail = () => {
+        if (session) {
+            return session.user?.email || null;
+        }
+        return null;
+    };
 
     useEffect(() => {
         // Initial session fetch (still useful for page load)
@@ -46,7 +54,7 @@ export const SessionProvider = ({ children }: { children: ReactNode }) => {
 
 
     return (
-        <SessionContext.Provider value={{ session, setSession }}>
+        <SessionContext.Provider value={{ session, setSession, getUserEmail }}>
             {children}
         </SessionContext.Provider>
     );
