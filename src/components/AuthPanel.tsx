@@ -5,11 +5,11 @@ import { useRouter } from 'next/navigation';
 import { Session } from '@supabase/supabase-js'
 import { supabase } from '@/utils/supabase';
 import { logger } from '@/utils/logger';
-import { useHeaderContext } from '@/context/HeaderContext';
+import { useSessionContext } from '@/context/SessionContext';
 
 const AuthPanel: React.FC = () => {
   const router = useRouter();
-  const { session } = useHeaderContext();
+  const { session } = useSessionContext();
 
 
   const handleAuthAction = () => {

@@ -4,15 +4,15 @@ import { createContext, useState, useContext, ReactNode, useEffect } from 'react
 import { Session } from '@supabase/supabase-js';
 import { supabase } from '@/utils/supabase';
 
-interface HeaderConfig {
+interface SessionConfig {
     user_email?: any;
     session?: Session;
 }
 
-const HeaderContext = createContext<{
+const SessionContext = createContext<{
     user_email: any;
     session: Session | null;
-    updateHeaderConfig: (config: HeaderConfig) => void;
+    updateHeaderConfig: (config: SessionConfig) => void;
     setUser: (user_email: any) => void;
     setSession: (session: Session | null) => void;
 }>({
@@ -23,7 +23,7 @@ const HeaderContext = createContext<{
     setSession: () => { }
 });
 
-export const HeaderProvider = ({ children }: { children: ReactNode }) => {
+export const SessionProvider = ({ children }: { children: ReactNode }) => {
     const [user_email, setUser] = useState<string | null>(null);
     const [session, setSession] = useState<Session | null>(null);
 
@@ -60,16 +60,16 @@ export const HeaderProvider = ({ children }: { children: ReactNode }) => {
         };
     }, []);
 
-    const updateHeaderConfig = (config: HeaderConfig) => {
+    const updateHeaderConfig = (config: SessionConfig) => {
         if (config.user_email !== undefined) setUser(config.user_email);
         if (config.session !== undefined) setSession(config.session);
     };
 
     return (
-        <HeaderContext.Provider value={{ user_email, session, updateHeaderConfig, setUser, setSession }}>
+        <SessionContext.Provider value={{ user_email, session, updateHeaderConfig, setUser, setSession }}>
             {children}
-        </HeaderContext.Provider>
+        </SessionContext.Provider>
     );
 };
 
-export const useHeaderContext = () => useContext(HeaderContext);
+export const useSessionContext = () => useContext(SessionContext);
