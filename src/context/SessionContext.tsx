@@ -4,21 +4,14 @@ import { createContext, useState, useContext, ReactNode, useEffect } from 'react
 import { Session } from '@supabase/supabase-js';
 import { supabase } from '@/utils/supabase';
 
-interface SessionConfig {
-    user_email: string | null;
-    session: Session | null;
-}
-
 const SessionContext = createContext<{
     user_email: string | null;
     session: Session | null;
-    updateHeaderConfig: (config: SessionConfig) => void;
     setUser: (user_email: string | null) => void;
     setSession: (session: Session | null) => void;
 }>({
     user_email: null,
     session: null,
-    updateHeaderConfig: () => { },
     setUser: () => { },
     setSession: () => { }
 });
@@ -60,13 +53,9 @@ export const SessionProvider = ({ children }: { children: ReactNode }) => {
         };
     }, []);
 
-    const updateHeaderConfig = (config: SessionConfig) => {
-        if (config.user_email !== undefined) setUser(config.user_email);
-        if (config.session !== undefined) setSession(config.session);
-    };
 
     return (
-        <SessionContext.Provider value={{ user_email, session, updateHeaderConfig, setUser, setSession }}>
+        <SessionContext.Provider value={{ user_email, session, setUser, setSession }}>
             {children}
         </SessionContext.Provider>
     );
