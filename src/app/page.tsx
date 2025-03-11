@@ -35,7 +35,7 @@ const testimonials = [
 
 export default function Home() {
     const [jobDescription, setJobDescription] = useState("");
-    const { setIsLoading, isLoading } = useLoading();
+    const { isLoading } = useLoading();
 
     return (
         <main

@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { useRouter } from 'next/navigation';
+import { useLoading } from '@/context/LoadingContext';
 
 interface UserInputProp {
     jobDescription: string;
@@ -32,9 +33,8 @@ export const UserInput: React.FC<UserInputProp> = ({
                                                      jobDescription,
                                                      onJobDescriptionChange,
                                                    }) => {
-    
+    const { setIsLoading } = useLoading();
     const router = useRouter();
-    const [isLoading, setIsLoading] = React.useState(false);
     const handlePasteExample = () => {
         onJobDescriptionChange(exampleJobDescription);
     };
