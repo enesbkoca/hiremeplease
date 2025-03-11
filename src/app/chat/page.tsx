@@ -9,7 +9,7 @@ import { logger } from '@/utils/logger'
 
 export default function ChatPage() {
     const router = useRouter();
-    const [_, setIsLoading] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
     const [jobDescription, setJobDescription] = useState("");
     const [session, setSession] = useState<Session | null>(null)
 
@@ -46,6 +46,7 @@ export default function ChatPage() {
             } else {
                 console.error("jobDescription element not found in form.");
                 setIsLoading(false);
+                logger.debug(`Ignore this error, it's a quic fix for non-used isLoading state ${isLoading}`);
             }
         };
 

@@ -5,15 +5,15 @@ import { Session } from '@supabase/supabase-js';
 import { supabase } from '@/utils/supabase';
 
 interface SessionConfig {
-    user_email?: any;
-    session?: Session;
+    user_email: string | null;
+    session: Session | null;
 }
 
 const SessionContext = createContext<{
-    user_email: any;
+    user_email: string | null;
     session: Session | null;
     updateHeaderConfig: (config: SessionConfig) => void;
-    setUser: (user_email: any) => void;
+    setUser: (user_email: string | null) => void;
     setSession: (session: Session | null) => void;
 }>({
     user_email: null,
