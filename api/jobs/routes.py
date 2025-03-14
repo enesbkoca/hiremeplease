@@ -5,7 +5,7 @@ import requests
 
 from flask import Blueprint, request, jsonify
 
-from api.index import generate_and_store_questions
+from api.jobs.services import generate_and_store_questions
 from api.utils.logger_config import get_logger
 from api.utils.redis_conn import get_redis_conn
 
