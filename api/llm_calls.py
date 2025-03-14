@@ -7,7 +7,7 @@ import openai
 from openai import OpenAI
 from dotenv import load_dotenv
 
-from .logger_config import get_logger
+from api.utils.logger_config import get_logger
 from .utils.models import InterviewPreparation, Feedback
 from .utils.prompts import question_generation_prompt, answer_analysis_prompt
 
@@ -74,8 +74,6 @@ def generate_response(job_description: str) -> Optional[dict]:
 
 def generate_answer_analysis(answer_text: str) -> Optional[dict]:
     logger.debug(f"Analyzing answer of length: {len(answer_text)}")
-    
-
 
     user_message = {"role": "user", "content": answer_text}
 

@@ -3,8 +3,7 @@ import os
 from redis import Redis
 from rq import Worker
 from dotenv import load_dotenv
-from .logger_config import get_logger
-from .prompt_calls import generate_response
+from api.utils.logger_config import get_logger
 
 logger = get_logger()
 
