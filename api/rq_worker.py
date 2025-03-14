@@ -4,7 +4,7 @@ from redis import Redis
 from rq import Worker
 from dotenv import load_dotenv
 from .logger_config import get_logger
-from .prompting import generate_response
+from .prompt_calls import generate_response
 
 logger = get_logger()
 

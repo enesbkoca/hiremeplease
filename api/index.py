@@ -9,7 +9,7 @@ from flask import Flask, request, jsonify
 from dotenv import load_dotenv
 
 from .logger_config import get_logger
-from .prompting import generate_response, generate_answer_analysis
+from .prompt_calls import generate_response, generate_answer_analysis
 
 logger = get_logger()
 
