@@ -5,6 +5,7 @@ import { UserInput } from "@/components/UserInput";
 import { supabase } from '@/utils/supabase'
 import { Session } from '@supabase/supabase-js'
 import { logger } from '@/utils/logger'
+import { InterviewHistorySidebar } from './components/InterviewHistorySidebar';
 
 export default function ChatPage() {
     const [jobDescription, setJobDescription] = useState("");
@@ -12,8 +13,8 @@ export default function ChatPage() {
 
     useEffect(() => {
         supabase.auth.getSession().then(({ data: { session } }) => {
-            logger.info('Chat Sessionn:', { session })
             setSession(session)
+            logger.info('Chat Sessionn:', { session })
         })
     }, []);
 
@@ -24,15 +25,20 @@ export default function ChatPage() {
     }
 
   return (
-    <main>
-    {/* Right Side - Input Form */}
-    <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-100">
-        <h2 className="text-xl font-semibold mb-4">Generate Interview Questions</h2>
-        <UserInput
-            jobDescription={jobDescription}
-            onJobDescriptionChange={setJobDescription}
-        />
-    </div>
+    <main className="flex gap-6 h-[calc(100vh-200px)]">
+      {/* Left Side - Interview History Sidebar */}
+      <div className="w-1/4 h-full">
+        <InterviewHistorySidebar session={session} />
+      </div>
+      
+      {/* Right Side - User Input */}
+      <div className="w-3/4 bg-white rounded-xl shadow-lg p-6 border border-gray-100">
+          <h2 className="text-xl font-semibold mb-4">Generate Interview Questions</h2>
+          <UserInput
+              jobDescription={jobDescription}
+              onJobDescriptionChange={setJobDescription}
+          />
+      </div>
     </main>
-    );
+  );
 }
