@@ -52,7 +52,7 @@ export default function App() {
   }
 
   if (session) {
-    router.push('/profile')
+    router.push('/chat')
     return null
   }
 
