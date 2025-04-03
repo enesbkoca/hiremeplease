@@ -13,6 +13,10 @@ logger = get_logger()
 
 jobs_bp = Blueprint('jobs', __name__)
 
+@jobs_bp.route('/', methods=['GET'])
+def jobs_welcome():
+    return "<p>Welcome to /api/jobs!</p>"
+
 
 @jobs_bp.route('/', methods=['POST'])
 def create_job():
