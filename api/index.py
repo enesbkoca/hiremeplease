@@ -7,8 +7,8 @@ from api.analyses.routes import analyses_bp
 logger = get_logger()
 
 app = Flask(__name__)
-app.register_blueprint(jobs_bp, url_prefix='/jobs')
-app.register_blueprint(analyses_bp, url_prefix='/analyses')
+app.register_blueprint(jobs_bp, url_prefix='/api/jobs')
+app.register_blueprint(analyses_bp, url_prefix='/api/analyses')
 
 
 @app.route('/api')
