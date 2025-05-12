@@ -8,7 +8,6 @@ from openai import OpenAI
 from dotenv import load_dotenv
 
 from api.utils.logger_config import get_logger
-from api.index import logger
 from api.utils.models import InterviewPreparation, Feedback
 from api.utils.prompts import question_generation_prompt, answer_analysis_prompt
 
