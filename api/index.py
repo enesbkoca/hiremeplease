@@ -3,7 +3,6 @@ import os
 import uuid
 import requests
 
-from rq import Queue
 from flask import Flask, request, jsonify
 
 from api.utils.redis_conn import get_redis_conn
@@ -75,9 +74,6 @@ def jobs_welcome():
 
 @app.route('/api/jobs', methods=['POST'])
 def create_job():
-    redis_conn = get_redis_conn()  # Get the Redis connection
-    q = Queue("gpt_response", connection=redis_conn)
-
     try:
         data = request.json
         description = data.get("description")
@@ -96,7 +92,7 @@ def create_job():
         }
 
         redis_conn.hset("jobs", description_id, json.dumps(job_data))
-        q.enqueue(generate_and_store_questions, description_id, description)
+        generate_and_store_questions(description_id, description)
 
         logger.debug(f"Job {description_id} successfully queued")
         return jsonify({"jobId": description_id})
@@ -106,7 +102,7 @@ def create_job():
 
 @app.route('/api/jobs/<job_id>', methods=['GET'])
 def get_job(job_id):
-    redis_conn = get_redis_conn()
+
 
     try:
         logger.debug(f"Fetching job {job_id}")
