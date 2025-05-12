@@ -14,12 +14,10 @@ logger = get_logger()
 
 app = Flask(__name__)
 
-@app.route('/api/')
+@app.route('/api')
 def index():
     logger.debug("API entry endpoint called")
     return "<p>Welcome to the API!</p>"
-
-
 
 @app.route('/api/analyses', methods=['POST'])
 def analyze_answer():
@@ -44,12 +42,12 @@ def analyze_answer():
         logger.error(f"Error analyzing answer: {str(e)}")
         return jsonify({"error": "Internal server error"}), 500
 
-@app.route('/api/jobs/', methods=['GET'])
+@app.route('/api/jobs', methods=['GET'])
 def jobs_welcome():
     return "<p>Welcome to /api/jobs!</p>"
 
 
-@app.route('/api/jobs/', methods=['POST'])
+@app.route('/api/jobs', methods=['POST'])
 def create_job():
     redis_conn = get_redis_conn()  # Get the Redis connection
     if redis_conn is None:
