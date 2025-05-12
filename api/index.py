@@ -76,10 +76,6 @@ def jobs_welcome():
 @app.route('/api/jobs', methods=['POST'])
 def create_job():
     redis_conn = get_redis_conn()  # Get the Redis connection
-    if redis_conn is None:
-        logger.error("Redis connection not available in create_job.")
-        return jsonify({"error": "Redis connection error"}), 500
-
     q = Queue("gpt_response", connection=redis_conn)
 
     try:
