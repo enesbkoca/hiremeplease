@@ -1,10 +1,11 @@
 import json
 
 from api.utils.logger_config import get_logger
-from api.index import redis_conn
-from api.services.llm_calls import logger, generate_response
+from api.utils.redis_conn import get_redis_conn
+from api.services.llm_calls import generate_response
 
 logger = get_logger()
+redis_conn = get_redis_conn()
 
 def generate_and_store_questions(description_id, description):
     try:
