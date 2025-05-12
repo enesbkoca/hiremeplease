@@ -107,9 +107,6 @@ def create_job():
 @app.route('/api/jobs/<job_id>', methods=['GET'])
 def get_job(job_id):
     redis_conn = get_redis_conn()
-    if redis_conn is None:
-        logger.error("Redis connection not available in get_job.")
-        return jsonify({"error": "Redis connection error"}), 500
 
     try:
         logger.debug(f"Fetching job {job_id}")
