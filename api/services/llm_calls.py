@@ -8,8 +8,9 @@ from openai import OpenAI
 from dotenv import load_dotenv
 
 from api.utils.logger_config import get_logger
-from .utils.models import InterviewPreparation, Feedback
-from .utils.prompts import question_generation_prompt, answer_analysis_prompt
+from api.index import logger
+from api.utils.models import InterviewPreparation, Feedback
+from api.utils.prompts import question_generation_prompt, answer_analysis_prompt
 
 logger = get_logger()
 load_dotenv()
@@ -94,3 +95,5 @@ def generate_answer_analysis(answer_text: str) -> Optional[dict]:
         error_msg = f"Error generating answer analysis: {str(e)}"
         logger.error(f"{error_msg}\n{traceback.format_exc()}")
         return None
+
+
