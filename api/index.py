@@ -3,6 +3,7 @@ import os
 import uuid
 import requests
 
+from rq import Queue
 from flask import Flask, request, jsonify
 
 from api.utils.services import generate_and_store_questions
@@ -54,6 +55,8 @@ def create_job():
         logger.error("Redis connection not available in create_job.")
         return jsonify({"error": "Redis connection error"}), 500
 
+    q = Queue("gpt_response", connection=redis_conn)
+
     try:
         data = request.json
         description = data.get("description")
@@ -70,8 +73,6 @@ def create_job():
             "description": description,
             "results": None
         }
-
-
 
         redis_conn.hset("jobs", description_id, json.dumps(job_data))
         q.enqueue(generate_and_store_questions, description_id, description)

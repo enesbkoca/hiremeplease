@@ -1,7 +1,7 @@
 import os
 
 from dotenv import load_dotenv
-from rq import Queue
+
 from redis import Redis
 
 from api.utils.logger_config import get_logger
@@ -17,7 +17,6 @@ def get_redis_conn():
 
     try:
         redis_conn = Redis.from_url(os.getenv("REDIS_URL"))
-        q = Queue("gpt_response", connection=redis_conn)
         logger.info("Successfully connected to Redis and initialized queue")
     except Exception as e:
         logger.error(f"Failed to connect to Redis: {str(e)}")
