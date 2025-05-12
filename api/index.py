@@ -4,25 +4,14 @@ import uuid
 import requests
 
 from rq import Queue
-from redis import Redis
 from flask import Flask, request, jsonify
-from dotenv import load_dotenv
 
-from .logger_config import get_logger
-from .prompting import generate_response, generate_answer_analysis
+from api.utils.redis_conn import get_redis_conn
+from api.llm_calls import generate_answer_analysis, generate_response
+from api.utils.logger_config import get_logger
 
 logger = get_logger()
-
-app = Flask(__name__)
-load_dotenv()
-
-try:
-    redis_conn = Redis.from_url(os.getenv("REDIS_URL"))
-    q = Queue("gpt_response", connection=redis_conn)
-    logger.info("Successfully connected to Redis and initialized queue")
-except Exception as e:
-    logger.error(f"Failed to connect to Redis: {str(e)}")
-    raise
+redis_conn = get_redis_conn()
 
 def generate_and_store_questions(description_id, description):
     try:
@@ -49,13 +38,46 @@ def generate_and_store_questions(description_id, description):
         redis_conn.hset("jobs", description_id, json.dumps(job_data))
         raise
 
+app = Flask(__name__)
+
 @app.route('/api')
 def index():
-    logger.debug("API index endpoint called")
+    logger.debug("API entry endpoint called")
     return "<p>Welcome to the API!</p>"
+
+@app.route('/api/analyses', methods=['POST'])
+def analyze_answer():
+    try:
+        data = request.json
+        answer_text = data.get("answer_text")
+
+        if not answer_text:
+            logger.warning("Attempt to analyze empty answer")
+            return jsonify({"error": "Answer text is required"}), 400
+
+        logger.info("Generating answer analysis")
+        analysis = generate_answer_analysis(answer_text)
+
+        if analysis:
+            logger.debug("Successfully generated answer analysis")
+            return jsonify({"analysis": analysis})
+        else:
+            logger.error("Failed to generate analysis")
+            return jsonify({"error": "Failed to generate analysis"}), 500
+    except Exception as e:
+        logger.error(f"Error analyzing answer: {str(e)}")
+        return jsonify({"error": "Internal server error"}), 500
+
+@app.route('/api/jobs', methods=['GET'])
+def jobs_welcome():
+    return "<p>Welcome to /api/jobs!</p>"
+
 
 @app.route('/api/jobs', methods=['POST'])
 def create_job():
+    redis_conn = get_redis_conn()  # Get the Redis connection
+    q = Queue("gpt_response", connection=redis_conn)
+
     try:
         data = request.json
         description = data.get("description")
@@ -84,6 +106,8 @@ def create_job():
 
 @app.route('/api/jobs/<job_id>', methods=['GET'])
 def get_job(job_id):
+    redis_conn = get_redis_conn()
+
     try:
         logger.debug(f"Fetching job {job_id}")
         job_data_json = redis_conn.hget("jobs", job_id)
@@ -115,28 +139,6 @@ def get_job(job_id):
         logger.error(f"Error retrieving job {job_id}: {str(e)}")
         return jsonify({"error": "Internal server error"}), 500
 
-@app.route('/api/analyses', methods=['POST'])
-def analyze_answer():
-    try:
-        data = request.json
-        answer_text = data.get("answer_text")
-
-        if not answer_text:
-            logger.warning("Attempt to analyze empty answer")
-            return jsonify({"error": "Answer text is required"}), 400
-
-        logger.info("Generating answer analysis")
-        analysis = generate_answer_analysis(answer_text)
-
-        if analysis:
-            logger.debug("Successfully generated answer analysis")
-            return jsonify({"analysis": analysis})
-        else:
-            logger.error("Failed to generate analysis")
-            return jsonify({"error": "Failed to generate analysis"}), 500
-    except Exception as e:
-        logger.error(f"Error analyzing answer: {str(e)}")
-        return jsonify({"error": "Internal server error"}), 500
 
 if __name__ == '__main__':
     app.run(debug=True)
