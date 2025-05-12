@@ -5,7 +5,8 @@ from rq import Worker
 
 from api.utils.redis_conn import get_redis_conn
 from api.utils.logger_config import get_logger
-from api.llm_calls import generate_response
+from api.utils.services import generate_and_store_questions
+
 
 logger = get_logger()
 redis_conn = get_redis_conn()
