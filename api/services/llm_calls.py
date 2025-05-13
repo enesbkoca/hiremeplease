@@ -7,10 +7,11 @@ import openai
 from openai import OpenAI
 from dotenv import load_dotenv
 
-from api.utils.logger_config import logger
+from api.utils.logger_config import get_logger
 from api.models import InterviewPreparation, Feedback
 from api.prompts import question_generation_prompt, answer_analysis_prompt
 
+logger = get_logger()
 load_dotenv()
 
 

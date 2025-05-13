@@ -2,8 +2,10 @@ from flask import request, jsonify
 
 from api.services import job_service
 from api.services.speech_service import get_default_speech_service
-from api.utils.logger_config import logger
+from api.utils.logger_config import get_logger
 from api.utils.redis_conn import get_redis_conn
+
+logger = get_logger()
 
 
 def register_job_routes(app):
