@@ -1,8 +1,7 @@
-from api.utils.logger_config import get_logger
+from api.utils.logger_config import logger
 
 
 def register_home_routes(app):
-    logger = get_logger()
     logger.debug("Registering home routes")
 
     @app.route('/api')

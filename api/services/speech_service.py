@@ -1,9 +1,10 @@
 import os
 import requests
 
-from api.utils.logger_config import get_logger
+from dotenv import load_dotenv
+from api.utils.logger_config import logger
 
-logger = get_logger()
+load_dotenv()
 
 
 class SpeechService:

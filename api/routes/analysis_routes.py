@@ -1,8 +1,6 @@
 from flask import request, jsonify
 from api.services.analysis_service import perform_answer_analysis
-from api.utils.logger_config import get_logger
-
-logger = get_logger()
+from api.utils.logger_config import logger
 
 
 def register_analysis_routes(app):

@@ -3,9 +3,8 @@ import os
 from dotenv import load_dotenv
 from redis import Redis
 
-from api.utils.logger_config import get_logger
+from api.utils.logger_config import logger
 
-logger = get_logger()
 load_dotenv()
 
 _redis_conn = None

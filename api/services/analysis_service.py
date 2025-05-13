@@ -1,8 +1,5 @@
 from api.services.llm_calls import generate_answer_analysis
-from api.utils.logger_config import get_logger
-
-logger = get_logger()
-
+from api.utils.logger_config import logger
 
 def perform_answer_analysis(answer_text):
     """Performs analysis on the provided answer text."""
