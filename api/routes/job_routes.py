@@ -2,8 +2,8 @@ from flask import request, jsonify
 
 from api.services import job_service
 from api.services.speech_service import get_default_speech_service
+from api.services.user_authentication import get_user_id_from_request
 from api.utils.logger_config import logger
-from api.utils.redis_conn import get_redis_conn
 
 
 def register_job_routes(app):
@@ -11,13 +11,14 @@ def register_job_routes(app):
 
     @app.route('/api/jobs', methods=['POST'])
     def create_job_route():
-        redis_conn = get_redis_conn()  # Get the Redis connection
 
         try:
             data = request.json
             description = data.get("description")
 
-            job_id = job_service.create_and_process_job(description)
+            user_id = get_user_id_from_request(request)
+
+            job_id = job_service.create_and_process_job(description, user_id)
             return jsonify({"jobId": job_id}, 201)
 
         except ValueError as ve:

@@ -4,19 +4,24 @@ import uuid
 from api.services.llm_calls import generate_response
 from api.utils.logger_config import logger
 from api.utils.redis_conn import get_redis_conn
+from api.db.repositories.job_description_repository import JobDescriptionRepository
+
 
 redis_conn = get_redis_conn()
+job_desc_repo = JobDescriptionRepository()
 
 JOB_HASH_NAME = "jobs"
 
 
-def create_and_process_job(description: str) -> str:
+def create_and_process_job(description: str, user_id) -> str:
     if not description:
         logger.warning("Attempt to create job without description")
         raise ValueError("Description is required")
 
     description_id = str(uuid.uuid4())
     logger.info(f"Creating and synchronously processing job ID: {description_id} for description: {description[:50]}...")
+
+    job_desc_repo.create(description=description, user_id=user_id)
 
     job_data = {
         "id": description_id,

@@ -3,6 +3,7 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import { useLoading } from '@/context/LoadingContext';
+import { useSessionContext} from "@/context/SessionContext";
 
 interface UserInputProp {
     jobDescription: string;
@@ -34,6 +35,7 @@ export const UserInput: React.FC<UserInputProp> = ({
                                                      onJobDescriptionChange,
                                                    }) => {
     const { setIsLoading } = useLoading();
+    const { session } = useSessionContext();
     const router = useRouter();
     const handlePasteExample = () => {
         onJobDescriptionChange(exampleJobDescription);
@@ -47,12 +49,21 @@ export const UserInput: React.FC<UserInputProp> = ({
             const jobDescriptionElement = e.currentTarget.elements.jobDescription as HTMLTextAreaElement;
             const jobDescriptionValue = jobDescriptionElement.value;
 
+            const headers = {
+                "Content-Type": "application/json",
+            }
+
+            // Check if session exists and add access token to headers
+            if ("access_token" in session) {
+                headers["Authorization"] = `Bearer ${session.access_token}`;
+            }
+
             // Send job description to the server
             const response = await fetch("/api/jobs", {
-                method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({description: jobDescriptionValue}),
-            });
+                    method: "POST",
+                    headers: headers,
+                    body: JSON.stringify({description: jobDescriptionValue}),
+                });
 
             const {jobId} = await response.json();
             router.push(`/job/${jobId}`); // Redirect to the job page
