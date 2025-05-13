@@ -3,7 +3,6 @@ openai==1.65.1
 Flask==3.0.3
 requests==2.32.3
 redis==5.2.1
-rq==2.1.0
 pydantic==2.10.3
 loguru==0.7.2
 Flask-SQLAlchemy==3.1.1
