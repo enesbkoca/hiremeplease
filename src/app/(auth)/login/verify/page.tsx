@@ -42,12 +42,12 @@ export default function OtpPage() {
           <div className="space-y-4">
             <OtpVerification
                 email={email}
-                onBack={() => router.push('/login')}
+                onBack={() => router.push('/chat')}
                 supabase={supabase}
             />
             <div className="text-center mt-2"> {/* Keep text-center and mt-2 */}
               <button
-                  onClick={() => router.push('/login')}
+                  onClick={() => router.push('/chat')}
                   className="inline-block text-sm font-medium text-indigo-600 hover:text-indigo-800" // Keep back to log in button
               >
                 Back to Login
