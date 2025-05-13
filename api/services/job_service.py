@@ -2,10 +2,9 @@ import json
 import uuid
 
 from api.services.llm_calls import generate_response
-from api.utils.logger_config import get_logger
+from api.utils.logger_config import logger
 from api.utils.redis_conn import get_redis_conn
 
-logger = get_logger()
 redis_conn = get_redis_conn()
 
 JOB_HASH_NAME = "jobs"
