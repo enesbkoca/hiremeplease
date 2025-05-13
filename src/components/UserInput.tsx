@@ -49,14 +49,15 @@ export const UserInput: React.FC<UserInputProp> = ({
             const jobDescriptionElement = e.currentTarget.elements.jobDescription as HTMLTextAreaElement;
             const jobDescriptionValue = jobDescriptionElement.value;
 
-            const headers = {
+            const baseHeaders = {
                 "Content-Type": "application/json",
             }
 
-            // Check if session exists and add access token to headers
-            if ("access_token" in session) {
-                headers["Authorization"] = `Bearer ${session.access_token}`;
-            }
+            const headers = session?.access_token
+                ? {
+                    ... baseHeaders,
+                    "Authorization": `Bearer ${session.access_token}`,
+                } : baseHeaders;
 
             // Send job description to the server
             const response = await fetch("/api/jobs", {
