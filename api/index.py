@@ -1,116 +1,19 @@
-import json
-import os
-import uuid
-import requests
+from flask import Flask
 
-from flask import Flask, request, jsonify
+from api.routes.analysis_routes import register_analysis_routes
+from api.routes.home_routes import register_home_routes
+from api.routes.job_routes import register_job_routes
 
-from api.utils.redis_conn import get_redis_conn
-from api.services.llm_calls import generate_answer_analysis
-from api.services.question_storing import generate_and_store_questions
 from api.utils.logger_config import get_logger
 
 logger = get_logger()
-redis_conn = get_redis_conn()
+
 
 app = Flask(__name__)
 
-@app.route('/api')
-def index():
-    logger.debug("API entry endpoint called")
-    return "<p>Welcome to the API!</p>"
-
-@app.route('/api/analyses', methods=['POST'])
-def analyze_answer():
-    try:
-        data = request.json
-        answer_text = data.get("answer_text")
-
-        if not answer_text:
-            logger.warning("Attempt to analyze empty answer")
-            return jsonify({"error": "Answer text is required"}), 400
-
-        logger.info("Generating answer analysis")
-        analysis = generate_answer_analysis(answer_text)
-
-        if analysis:
-            logger.debug("Successfully generated answer analysis")
-            return jsonify({"analysis": analysis})
-        else:
-            logger.error("Failed to generate analysis")
-            return jsonify({"error": "Failed to generate analysis"}), 500
-    except Exception as e:
-        logger.error(f"Error analyzing answer: {str(e)}")
-        return jsonify({"error": "Internal server error"}), 500
-
-@app.route('/api/jobs', methods=['GET'])
-def jobs_welcome():
-    return "<p>Welcome to /api/jobs!</p>"
-
-
-@app.route('/api/jobs', methods=['POST'])
-def create_job():
-    try:
-        data = request.json
-        description = data.get("description")
-
-        if not description:
-            logger.warning("Attempt to create job without description")
-            return jsonify({"error": f"Description is required, but was provided with {description}"}), 400
-
-        description_id = str(uuid.uuid4())
-        logger.info(f"Creating new job with ID: {description_id} \n with prompt: {description}")
-
-        job_data = {
-            "status": "Created",
-            "description": description,
-            "results": None
-        }
-
-        redis_conn.hset("jobs", description_id, json.dumps(job_data))
-        generate_and_store_questions(description_id, description)
-
-        logger.debug(f"Job {description_id} successfully queued")
-        return jsonify({"jobId": description_id})
-    except Exception as e:
-        logger.error(f"Error creating job: {str(e)}")
-        return jsonify({"error": "Internal server error"}), 500
-
-@app.route('/api/jobs/<job_id>', methods=['GET'])
-def get_job(job_id):
-
-
-    try:
-        logger.debug(f"Fetching job {job_id}")
-        job_data_json = redis_conn.hget("jobs", job_id)
-
-        if not job_data_json:
-            logger.warning(f"Job {job_id} not found")
-            return jsonify({"error": "Job Description not found"}), 404
-
-        headers = {
-            "Ocp-Apim-Subscription-Key": os.getenv("SPEECH_KEY"),
-            "Content-Type": "application/x-www-form-urlencoded",
-        }
-
-        token_url = f"https://{os.getenv('NEXT_PUBLIC_SPEECH_REGION')}.api.cognitive.microsoft.com/sts/v1.0/issueToken"
-
-        logger.debug("Requesting speech token")
-        token_response = requests.post(token_url, headers=headers)
-
-        if not token_response.ok:
-            logger.error(f"Failed to get speech token: {token_response.status_code}")
-            return jsonify({"error": "Failed to get speech token"}), 500
-
-        job_data = json.loads(job_data_json)
-        job_data["speech_token"] = token_response.text
-
-        logger.info(f"Successfully retrieved job {job_id}")
-        return jsonify(job_data)
-    except Exception as e:
-        logger.error(f"Error retrieving job {job_id}: {str(e)}")
-        return jsonify({"error": "Internal server error"}), 500
-
+register_home_routes(app)
+register_analysis_routes(app)
+register_job_routes(app)
 
 if __name__ == '__main__':
     app.run(debug=True)
