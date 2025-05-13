@@ -21,7 +21,10 @@ def create_and_process_job(description: str, user_id) -> str:
     description_id = str(uuid.uuid4())
     logger.info(f"Creating and synchronously processing job ID: {description_id} for description: {description[:50]}...")
 
-    job_desc_repo.create(description=description, user_id=user_id)
+    if user_id:
+        job_desc_repo.create(description=description, user_id=user_id)
+    else:
+        logger.warning("No user_id provided, job description will not be stored in the database")
 
     job_data = {
         "id": description_id,

@@ -19,7 +19,7 @@ def register_job_routes(app):
             user_id = get_user_id_from_request(request)
 
             job_id = job_service.create_and_process_job(description, user_id)
-            return jsonify({"jobId": job_id}, 201)
+            return jsonify({"jobId": job_id}), 201
 
         except ValueError as ve:
             logger.warning(f"Validation error creating job: {str(ve)}")
@@ -31,7 +31,6 @@ def register_job_routes(app):
 
     @app.route('/api/jobs/<job_id>', methods=['GET'])
     def get_job_route(job_id):
-
         try:
             job_data = job_service.get_job_status(job_id, speech_service)
             if not job_data:

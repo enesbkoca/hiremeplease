@@ -4,6 +4,7 @@ import React from 'react';
 import { useRouter } from 'next/navigation';
 import { useLoading } from '@/context/LoadingContext';
 import { useSessionContext} from "@/context/SessionContext";
+import {logger} from "@/utils/logger";
 
 interface UserInputProp {
     jobDescription: string;
@@ -58,6 +59,7 @@ export const UserInput: React.FC<UserInputProp> = ({
                     ... baseHeaders,
                     "Authorization": `Bearer ${session.access_token}`,
                 } : baseHeaders;
+
 
             // Send job description to the server
             const response = await fetch("/api/jobs", {
