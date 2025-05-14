@@ -36,7 +36,6 @@ export const UserInput: React.FC<UserInputProp> = ({
                                                      onJobDescriptionChange,
                                                    }) => {
     const { setIsLoading } = useLoading();
-    const { session } = useSessionContext();
     const router = useRouter();
     const handlePasteExample = () => {
         onJobDescriptionChange(exampleJobDescription);
