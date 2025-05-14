@@ -1,4 +1,7 @@
 import os
+from typing import Optional
+from uuid import UUID
+
 import jwt
 
 from dotenv import load_dotenv
@@ -11,7 +14,7 @@ load_dotenv()
 SUPABASE_JWT_SECRET = os.getenv("SUPABASE_JWT_SECRET")
 
 
-def get_user_id_from_request(request) -> str:
+def get_user_id_from_request(request) -> Optional[UUID]:
     """
     Extracts the user ID from the Authorization header.
     """
@@ -51,7 +54,7 @@ def get_user_id_from_request(request) -> str:
             return None
 
         logger.info(f"User ID extracted: {user_id}")
-        return user_id
+        return UUID(user_id)
 
     except ExpiredSignatureError:
         logger.warning("Token has expired.")

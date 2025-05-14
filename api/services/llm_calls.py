@@ -23,7 +23,7 @@ except Exception as e:
     raise
 
 
-def generate_response(job_description: str) -> Optional[dict]:
+def generate_response(job_description: str) -> Optional[InterviewPreparation]:
     """
     Generates structured interview questions based on a job description using OpenAI Chat Completion.
 
@@ -48,6 +48,9 @@ def generate_response(job_description: str) -> Optional[dict]:
         
         logger.info("Successfully generated interview questions")
         json_output = response.choices[0].message
+
+        logger.info(f"Generated JSON output from OpenAI API: {json_output.content}")
+        # Return the parsed JSON content in the expected format
         return json.loads(json_output.content)
 
     except json.JSONDecodeError as e:

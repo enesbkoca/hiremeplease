@@ -13,7 +13,8 @@ class JobDescriptionDB(BaseModel):
     title: str = None
     description: str
     user_id: UUID4  # Foreign key to auth.users.id
-    created_at: datetime
+    created_at: datetime = Field(default_factory=datetime.utcnow)
+    status: str = Field(default="created")
 
 
 class QuestionDB(BaseModel):

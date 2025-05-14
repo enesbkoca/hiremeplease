@@ -1,82 +1,178 @@
 import json
 import uuid
+from typing import Optional
 
+import httpx
+import os
+
+from dotenv import load_dotenv
+from uuid import UUID
+
+from flask import request
+
+from api.db.repositories.question_repository import QuestionRepository
+from api.models import InterviewPreparation
 from api.services.llm_calls import generate_response
 from api.utils.logger_config import logger
-from api.utils.redis_conn import get_redis_conn
 from api.db.repositories.job_description_repository import JobDescriptionRepository
 
+load_dotenv()
 
-redis_conn = get_redis_conn()
 job_desc_repo = JobDescriptionRepository()
+question_repo = QuestionRepository()
 
-JOB_HASH_NAME = "jobs"
 
+def trigger_background_job_processing(job_description_id: UUID):
+    """
+    Makes an asynchronous HTTP POST request to the background processing endpoint.
+    This function MUST be called from within an active Flask request context.
+    """
+    if not request:
+        logger.error("No active Flask request context. Cannot determine host URL.")
 
-def create_and_process_job(description: str, user_id) -> str:
-    if not description:
-        logger.warning("Attempt to create job without description")
-        raise ValueError("Description is required")
+        base_url_fallback = os.getenv("VERCEL_URL") or "http://localhost:3000"
+        if not base_url_fallback:
+            raise RuntimeError("Cannot determine application base URL for internal trigger.")
+        process_url = f"{base_url_fallback.rstrip('/')}/api/internal/process-job-background"
 
-    description_id = str(uuid.uuid4())
-    logger.info(f"Creating and synchronously processing job ID: {description_id} for description: {description[:50]}...")
-
-    if user_id:
-        job_desc_repo.create(description=description, user_id=user_id)
     else:
-        logger.warning("No user_id provided, job description will not be stored in the database")
+        base_url = request.host_url.rstrip('/')  # Remove trailing slash for clean join
+        process_url = f"{base_url}/api/internal/process-job-background"
 
-    job_data = {
-        "id": description_id,
-        "status": "Created",
-        "description": description,
-        "results": None,
-        "error": None
-    }
+    payload = {"job_description_id": str(job_description_id)}
 
-    redis_conn.hset(JOB_HASH_NAME, description_id, json.dumps(job_data))
-    logger.debug(f"Job {description_id} created and stored in Redis")
-
+    logger.info(f"Triggering background job processing for job description ID: {job_description_id}")
     try:
-        logger.info(f"Generating response for job {description_id} (synchronous call)")
-        response_results = generate_response(description)  # This is the potentially long call
+        with httpx.Client() as client:
+            response = client.post(process_url, json=payload, timeout=60)
 
-        # Update job data with results and "Completed" status
-        job_data["status"] = "Completed"
-        job_data["results"] = response_results
-        redis_conn.hset(JOB_HASH_NAME, description_id, json.dumps(job_data))
-        logger.info(f"Successfully completed job {description_id} synchronously.")
-
+        if 200 <= response.status_code < 300:
+            logger.info(f"Successfully triggered background job processing for job description ID: {job_description_id} with status code {response.status_code}")
+        else:
+            logger.error(f"Failed to trigger background processing for job {job_description_id}. Trigger endpoint "
+                         f"returned: {response.status_code} - {response.text}")
+    except httpx.RequestError as e:
+        logger.error(f"Request error while triggering background job processing for job id {job_description_id}: {str(e)}")
     except Exception as e:
-        logger.error(f"Error processing job {description_id} synchronously: {str(e)}")
-
-        job_data["status"] = "Failed"
-        job_data["error"] = str(e)
-        redis_conn.hset(JOB_HASH_NAME, description_id, json.dumps(job_data))
-
-        # Re-raise the exception so the route handler can catch it and return an appropriate HTTP error
-        raise
-
-    return description_id
+        logger.error(f"Unexpected error while triggering background job processing for job id {job_description_id}: {str(e)}")
 
 
-def get_job_status(job_id: str, speech_service) -> dict:
-    """Retrieves job status and adds speech token."""
-    logger.debug(f"Fetching job {job_id}")
-    job_data_json = redis_conn.hget(JOB_HASH_NAME, job_id)
+def initiate_job_creation(description_txt: str, user_id: UUID) -> Optional[str]:
+    """
+        Initiates job creation: saves initial data, triggers background processing.
+        Returns basic job info for the client.
+        """
+    logger.info(f"Initiating job creation by user {user_id} for job description {description_txt}")
+    description_id = uuid.uuid4()
 
-    if not job_data_json:
-        logger.warning(f"Job {job_id} not found")
+    job_desc_record = job_desc_repo.create(
+        description_id=description_id,
+        description=description_txt,
+        user_id=user_id
+    )
+
+    if not job_desc_record:
+        logger.error(f"Failed to create job description in the database for user {user_id}")
         return None
 
-    job_data = json.loads(job_data_json)
+    trigger_background_job_processing(description_id)
+
+    return str(description_id)
+
+
+def process_job_background_task(job_description_id_str: str):
+    """
+    The actual background task: fetches job, calls LLM, saves questions.
+    This is called by the /api/internal/process-job-background endpoint.
+    """
+    try:
+        job_description_id = UUID(job_description_id_str)
+    except ValueError:
+        logger.error(f"Invalid UUID for background processing: {job_description_id_str}")
+        return
+
+    logger.info(f"Background: Starting processing for job {job_description_id}")
+    job_desc = job_desc_repo.get_by_id(job_description_id)
+
+    if not job_desc:
+        logger.error(f"Background: Job description {job_description_id} not found for processing.")
+        return
+
+    if job_desc.get('status') == 'completed':  # Avoid reprocessing
+        logger.info(f"Background: Job {job_description_id} already completed. Skipping.")
+        return
 
     try:
-        token = speech_service.get_speech_token()  # Assuming speech_service is an instance
-        job_data["speech_token"] = token
-    except Exception as e:  # Be more specific if speech_service raises custom errors
-        logger.error(f"Failed to get speech token for job {job_id}: {str(e)}")
-        job_data["speech_token"] = None  # Or decide not to add the key
+        job_desc_repo.update_status(job_description_id, "processing")
 
-    logger.info(f"Successfully retrieved job {job_id}")
-    return job_data
+        description_text = job_desc.get("description")
+        interview_prep_data: InterviewPreparation = generate_response(description_text)
+
+        if not interview_prep_data:
+            logger.error(f"Background: LLM failed for job {job_description_id}.")
+            job_desc_repo.update_status(job_description_id, "failed")
+            return
+
+        job_desc_repo.update_title(job_description_id, interview_prep_data["job_title"])
+
+        questions_to_insert = []
+
+        for bq in interview_prep_data["behavioral_questions"]:
+            questions_to_insert.append({
+                "job_description_id": str(job_description_id),
+                "content": bq["question"],
+                "type": "Behavioral",
+                "keyword": bq["category"]
+            })
+
+        for tq in interview_prep_data["technical_questions"]:
+            questions_to_insert.append({
+                "job_description_id": str(job_description_id),
+                "content": tq["question"],
+                "type": "Technical",
+                "keyword": tq["skill_area"]
+            })
+
+        if questions_to_insert:
+            question_repo.create_batch(questions_to_insert)
+
+        job_desc_repo.update_status(job_description_id, "completed")
+        logger.info(f"Background: Successfully processed job {job_description_id}")
+
+    except Exception as e:
+        logger.error(f"Background: Error during processing job {job_description_id}: {e}")
+        try:
+            job_desc_repo.update_status(job_description_id, "failed")
+        except Exception as db_e:
+            logger.error(f"Background: Could not even update status to failed for {job_description_id}: {db_e}")
+
+
+def get_job_details(job_description_id_str: str) -> Optional[dict]:
+    try:
+        job_description_id = UUID(job_description_id_str)
+    except ValueError:
+        logger.warning(f"Invalid UUID format for job_description_id: {job_description_id_str}")
+        return None
+
+    job_desc_data = job_desc_repo.get_by_id(job_description_id)
+
+    if not job_desc_data:
+        return None  # Not found
+
+    response_data = {
+        "job_description": {
+            "id": job_desc_data.get("id"),
+            "title": job_desc_data.get("title"),
+            "description": job_desc_data.get("description"),  # Only if needed by client at this stage
+            "status": job_desc_data.get("status"),
+            "created_at": job_desc_data.get("created_at"),
+        },
+        "questions": []  # Initialize
+    }
+
+    if job_desc_data.get("status") == "completed":
+        questions_data = question_repo.get_questions_by_job_description_id(job_description_id)
+        response_data["questions"] = questions_data
+
+    return response_data
+

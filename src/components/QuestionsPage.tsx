@@ -77,7 +77,7 @@ export default function QuestionsPage({ jobId }: { jobId: string }) {
                 setJobResponse(response);
                 setSpeechToken(response.speech_token);
 
-                if (response.status !== "Completed") {
+                if (response.status !== "completed") {
                     logger.info(`Job ${jobId} still processing, scheduling next poll`);
                     timeoutId = setTimeout(fetchJob, 2000);
                 } else {
