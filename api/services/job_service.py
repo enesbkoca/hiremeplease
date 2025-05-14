@@ -1,5 +1,6 @@
 import json
 import uuid
+import threading
 from typing import Optional, Dict
 
 import httpx
@@ -77,7 +78,14 @@ def initiate_job_creation(description_txt: str, user_id: UUID) -> Optional[str]:
         logger.error(f"Failed to create job description in the database for user {user_id}")
         return None
 
-    trigger_background_job_processing(description_id)
+    trigger_thread = threading.Thread(
+        target=trigger_background_job_processing,
+        args=(description_id,)
+    )
+    trigger_thread.daemon = True  # Allows main program to exit even if thread is running
+    trigger_thread.start()
+    logger.info(
+        f"Background trigger thread started for job ID: {description_id}. Returning initial response to client NOW.")
 
     return str(description_id)
 
