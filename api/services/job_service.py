@@ -31,7 +31,7 @@ def trigger_background_job_processing(job_description_id: UUID):
     if not request:
         logger.error("No active Flask request context. Cannot determine host URL.")
 
-        base_url_fallback = os.getenv("VERCEL_URL") or "http://localhost:3000"
+        base_url_fallback = f"https://{os.getenv('VERCEL_URL')}" if os.getenv("VERCEL_URL") else "http://localhost:3000"
         if not base_url_fallback:
             raise RuntimeError("Cannot determine application base URL for internal trigger.")
         process_url = f"{base_url_fallback.rstrip('/')}/api/internal/process-job-background"
