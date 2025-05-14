@@ -44,7 +44,7 @@ def trigger_background_job_processing(job_description_id: UUID):
 
     logger.info(f"THREAD/TRIGGER (requests): Attempting for job ID: {job_description_id} to URL: {process_url}")
     try:
-        response = requests.post(process_url, json=payload, timeout=60.0)  # Use requests.post
+        response = requests.post(process_url, json=payload, timeout=60.0)
 
         if 200 <= response.status_code < 300:
             logger.info(f"THREAD/TRIGGER (requests): Successfully triggered. Status: {response.status_code}")
@@ -87,6 +87,10 @@ def initiate_job_creation(description_txt: str, user_id: UUID) -> Optional[str]:
     )
     trigger_thread.daemon = True  # Allows main program to exit even if thread is running
     trigger_thread.start()
+
+    import time
+    time.sleep(0.1)
+
     logger.info(
         f"Background trigger thread started for job ID: {description_id}. Returning initial response to client NOW.")
 
