@@ -24,3 +24,4 @@ class QuestionDB(BaseModel):
     content: str
     type: DBQuestionType
     keyword: str = None
+    explanation: str = None

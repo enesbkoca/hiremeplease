@@ -1,6 +1,6 @@
 import json
 import uuid
-from typing import Optional
+from typing import Optional, Dict
 
 import httpx
 import os
@@ -13,6 +13,7 @@ from flask import request
 from api.db.repositories.question_repository import QuestionRepository
 from api.models import InterviewPreparation
 from api.services.llm_calls import generate_response
+from api.services.speech_service import get_default_speech_service
 from api.utils.logger_config import logger
 from api.db.repositories.job_description_repository import JobDescriptionRepository
 
@@ -20,6 +21,7 @@ load_dotenv()
 
 job_desc_repo = JobDescriptionRepository()
 question_repo = QuestionRepository()
+speech_service = get_default_speech_service()
 
 
 def trigger_background_job_processing(job_description_id: UUID):
@@ -122,7 +124,8 @@ def process_job_background_task(job_description_id_str: str):
                 "job_description_id": str(job_description_id),
                 "content": bq["question"],
                 "type": "Behavioral",
-                "keyword": bq["category"]
+                "keyword": bq["category"],
+                "explanation": bq["explanation"]
             })
 
         for tq in interview_prep_data["technical_questions"]:
@@ -130,7 +133,8 @@ def process_job_background_task(job_description_id_str: str):
                 "job_description_id": str(job_description_id),
                 "content": tq["question"],
                 "type": "Technical",
-                "keyword": tq["skill_area"]
+                "keyword": tq["skill_area"],
+                "explanation": tq["explanation"]
             })
 
         if questions_to_insert:
@@ -147,32 +151,73 @@ def process_job_background_task(job_description_id_str: str):
             logger.error(f"Background: Could not even update status to failed for {job_description_id}: {db_e}")
 
 
-def get_job_details(job_description_id_str: str) -> Optional[dict]:
+def get_job_details(job_id_str: str) -> Optional[Dict]:  # Renamed param for clarity
+    """
+    Retrieves job description, its status, and if completed, its generated questions
+    and formats it according to the frontend's QuestionsResponse interface.
+    """
     try:
-        job_description_id = UUID(job_description_id_str)
+        job_id = UUID(job_id_str)
     except ValueError:
-        logger.warning(f"Invalid UUID format for job_description_id: {job_description_id_str}")
+        logger.warning(f"Invalid UUID format for job_id: {job_id_str}")
         return None
 
-    job_desc_data = job_desc_repo.get_by_id(job_description_id)
+    logger.debug(f"Fetching details for job_id: {job_id}")
+    job_desc_data = job_desc_repo.get_by_id(job_id)
 
     if not job_desc_data:
-        return None  # Not found
+        logger.warning(f"Job description not found for job_id: {job_id}")
+        return None
 
-    response_data = {
-        "job_description": {
-            "id": job_desc_data.get("id"),
-            "title": job_desc_data.get("title"),
-            "description": job_desc_data.get("description"),  # Only if needed by client at this stage
-            "status": job_desc_data.get("status"),
-            "created_at": job_desc_data.get("created_at"),
-        },
-        "questions": []  # Initialize
+    # Speech Token
+    speech_token_text = None
+    try:
+        speech_token_text = speech_service.get_speech_token()
+        logger.debug(f"Successfully fetched speech token for job {job_id}")
+    except ConnectionError as ce:
+        logger.error(f"Speech service connection error for job {job_id}: {str(ce)}")
+    except Exception as e:
+        logger.error(f"Failed to get speech token for job {job_id}: {str(e)}")
+
+    # Base Response Structure
+    response_shell = {
+        "status": job_desc_data.get("status", "unknown"),
+        "description": job_desc_data.get("description", ""),
+        "speech_token": speech_token_text,
+        "results": None  # Will be populated if status is 'completed'
     }
 
-    if job_desc_data.get("status") == "completed":
-        questions_data = question_repo.get_questions_by_job_description_id(job_description_id)
-        response_data["questions"] = questions_data
+    # Populate Results if Completed ---
+    if response_shell["status"] == "completed":
+        db_questions = question_repo.get_questions_by_job_description_id(job_id)
 
-    return response_data
+        behavioral_questions_list = []
+        technical_questions_list = []
 
+        for q_data in db_questions:
+            if q_data.get("type").lower() == "behavioral":
+                behavioral_questions_list.append({
+                    "question": q_data.get("content"),
+                    "category": q_data.get("keyword"),
+                    "explanation": q_data.get("explanation")
+                })
+            elif q_data.get("type").lower() == "technical":
+                technical_questions_list.append({
+                    "question": q_data.get("content"),
+                    "skill_area": q_data.get("keyword"),
+                    "explanation": q_data.get("explanation")
+                })
+
+        response_shell["results"] = {
+            "job_title": job_desc_data.get("title"),
+            "industry": "N/A",  # Placeholder
+            "experience_level": "N/A",  # Placeholder
+            "behavioral_questions": behavioral_questions_list,
+            "technical_questions": technical_questions_list,
+            "additional_notes": "N/A"  # Placeholder
+        }
+        logger.info(f"Successfully prepared completed job details for job_id: {job_id}")
+    else:
+        logger.info(f"Job {job_id} status is '{response_shell['status']}'. Results not populated.")
+
+    return response_shell
