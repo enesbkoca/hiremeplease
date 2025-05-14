@@ -1,11 +1,9 @@
-import json
+import os
 import uuid
 import threading
+import requests
+
 from typing import Optional, Dict
-
-import httpx
-import os
-
 from dotenv import load_dotenv
 from uuid import UUID
 
@@ -44,20 +42,25 @@ def trigger_background_job_processing(job_description_id: UUID):
 
     payload = {"job_description_id": str(job_description_id)}
 
-    logger.info(f"Triggering background job processing for job description ID: {job_description_id}")
+    logger.info(f"THREAD/TRIGGER (requests): Attempting for job ID: {job_description_id} to URL: {process_url}")
     try:
-        with httpx.Client() as client:
-            response = client.post(process_url, json=payload, timeout=60)
+        response = requests.post(process_url, json=payload, timeout=60.0)  # Use requests.post
 
         if 200 <= response.status_code < 300:
-            logger.info(f"Successfully triggered background job processing for job description ID: {job_description_id} with status code {response.status_code}")
+            logger.info(f"THREAD/TRIGGER (requests): Successfully triggered. Status: {response.status_code}")
         else:
-            logger.error(f"Failed to trigger background processing for job {job_description_id}. Trigger endpoint "
-                         f"returned: {response.status_code} - {response.text}")
-    except httpx.RequestError as e:
-        logger.error(f"Request error while triggering background job processing for job id {job_description_id}: {str(e)}")
+            logger.error(
+                f"THREAD/TRIGGER (requests): Failed. HTTP Status: {response.status_code}, Response: {response.text}")
+            job_desc_repo.update_status(job_description_id, "failed")
+    except requests.exceptions.Timeout:
+        logger.error(f"THREAD/TRIGGER (requests): Timeout for job {job_description_id} at {process_url}")
+        job_desc_repo.update_status(job_description_id, "failed")
+    except requests.exceptions.RequestException as e:
+        logger.error(f"THREAD/TRIGGER (requests): Request error for job {job_description_id}: {e}")
+        job_desc_repo.update_status(job_description_id, "failed")
     except Exception as e:
-        logger.error(f"Unexpected error while triggering background job processing for job id {job_description_id}: {str(e)}")
+        logger.error(f"THREAD/TRIGGER (requests): Unexpected error for job {job_description_id}: {e}", exc_info=True)
+        job_desc_repo.update_status(job_description_id, "failed")
 
 
 def initiate_job_creation(description_txt: str, user_id: UUID) -> Optional[str]:
