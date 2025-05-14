@@ -1,15 +1,12 @@
 from flask import request, jsonify
 
 from api.services import job_service
-from api.services.speech_service import get_default_speech_service
 from api.services.user_authentication import get_user_id_from_request
 from api.utils.logger_config import logger
 
 
 def register_job_routes(app):
     logger.debug("Registering job routes")
-
-    speech_service = get_default_speech_service()
 
     @app.route('/api/jobs', methods=['POST'])
     def create_job_initiate_route():
