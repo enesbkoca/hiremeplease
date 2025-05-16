@@ -17,8 +17,8 @@ CONSOLE_FORMAT = (
 logger.add(
     sys.stderr,
     format=CONSOLE_FORMAT,
-    level="DEBUG", # Or your desired minimum level for Vercel logs
-    colorize=True, # Keep color for local development if you run this locally
+    level="DEBUG",  # Or your desired minimum level for Vercel logs
+    colorize=True,  # Keep color for local development if you run this locally
 )
 
 # Configure custom color levels and icons (cosmetic for console)
@@ -28,7 +28,3 @@ logger.level("WARNING", color="<yellow>", icon="⚠️")
 logger.level("ERROR", color="<red>", icon="❌")
 logger.level("CRITICAL", color="<red><bold>", icon="🚨")
 logger.level("DEBUG", color="<blue>", icon="🔍")
-
-# Export logger
-def get_logger():
-    return logger

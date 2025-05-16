@@ -8,10 +8,12 @@ class BehavioralQuestion(BaseModel):
     category: str
     explanation: str
 
+
 class TechnicalQuestion(BaseModel):
     question: str
     skill_area: str
     explanation: str
+
 
 class InterviewPreparation(BaseModel):
     job_title: str
@@ -29,16 +31,17 @@ class TagType(str, Enum):
     UNNECESSARY = "unnecessary"
     SHOULD_BE_AVOIDED = "should-be-avoided"
 
+
 # Model for each tagged phrase
 class TaggedPhrase(BaseModel):
     phrase: str
     type: TagType
     comment: str
 
+
 # Main feedback model with alias for JSON keys
 class Feedback(BaseModel):
     model_config = ConfigDict(populate_by_name=True)
-
     summary_of_strengths: str = Field(alias="Summary of Strengths")
     areas_for_improvement: str = Field(alias="Areas for Improvement")
     specific_suggestions: List[str] = Field(alias="Specific Suggestions")
