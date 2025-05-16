@@ -102,8 +102,8 @@ def validate_token_and_get_user_id(token: str) -> Optional[UUID]:
         logger.warning("Token has expired.")
         return None
     except InvalidTokenError as e:  # errors like invalid signature, malformed token etc.
-        logger.warning(f"Invalid token: {e}")
-        logger.warning(f"Received token: {token}")
+        masked_token = f"{token[:5]}...{token[-5:]}" if len(token) > 10 else token
+        logger.warning(f"Invalid token: {e}. Received {masked_token}")
         return None
     except Exception as e:
         logger.error(f"An unexpected error occurred during token processing: {e}")

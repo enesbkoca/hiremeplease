@@ -78,7 +78,11 @@ def trigger_background_job_processing(
         job_desc_repo.update_status(job_description_id, "failed")
 
 
-def initiate_job_creation(description_txt: str, user_id: UUID, user_jwt: UUID, refresh_token: UUID) -> Optional[str]:
+def initiate_job_creation(
+        description_txt: str,
+        user_id: Optional[UUID],
+        user_jwt: Optional[str],
+        refresh_token: Optional[str]) -> Optional[str]:
     """
     Initiates job creation: saves initial data, triggers background processing.
     Returns basic job info for the client.
