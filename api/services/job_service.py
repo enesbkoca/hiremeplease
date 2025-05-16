@@ -25,8 +25,8 @@ speech_service = get_default_speech_service()
 
 def trigger_background_job_processing(
         job_description_id: UUID,
-        user_jwt: str,
-        refresh_token: str):
+        user_jwt: Optional[str],
+        refresh_token: Optional[str]):
     """
     Makes an asynchronous HTTP POST request to the background processing endpoint.
     """
@@ -45,16 +45,20 @@ def trigger_background_job_processing(
     logger.info(f"THREAD/TRIGGER (requests): Attempting for job ID: {job_description_id} to URL: {process_url}")
 
     try:
-        # Send request with access token and refresh token
+        headers = {}
+
+        # Add access token and refresh token in headers if provided
+        if user_jwt:
+            headers["Authorization"] = f"Bearer {user_jwt}"
+        if refresh_token:
+            headers["Refresh-Token"] = refresh_token
+
         response = requests.post(
             process_url,
             json=payload,
             timeout=60.0,
+            headers=headers,
         )
-
-        if user_jwt and refresh_token:
-            response.headers["Authorization"] = f"Bearer {user_jwt}"
-            response.headers["Refresh-Token"] = refresh_token
 
         if 200 <= response.status_code < 300:
             logger.info(f"THREAD/TRIGGER (requests): Successfully triggered. Status: {response.status_code}")
