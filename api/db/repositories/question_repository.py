@@ -1,12 +1,12 @@
-from typing import Dict, List, Any, Optional
+from typing import Dict, List
 from uuid import UUID
 
 from .base_repository import BaseRepository
 
 
 class QuestionRepository(BaseRepository):
-    def __init__(self):
-        super().__init__("questions")
+    def __init__(self, db_client):
+        super().__init__("questions", db_client)
 
     def create_batch(self, questions: List[Dict]):
         if not self.client:
@@ -39,10 +39,11 @@ class QuestionRepository(BaseRepository):
             return []
 
         try:
-            data, count = self.client.table(self.table_name) \
+            payload = self.client.table(self.table_name) \
                 .select("*") \
-                .eq("job_description_id", str(job_description_id)) \
-                .execute()
+                .eq("job_description_id", str(job_description_id))
+
+            data, count = payload.execute()
 
             if data and len(data[1]) > 0:
                 self.logger.info(f"Retrieved {len(data[1])} questions for job description ID: {job_description_id}")

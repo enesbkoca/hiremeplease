@@ -1,7 +1,7 @@
 from flask import request, jsonify
 
 from api.services import job_service
-from api.services.user_authentication import get_user_id_from_request
+from api.utils.auth_tools import login_optional, login_required
 from api.utils.logger_config import logger
 
 
@@ -9,20 +9,20 @@ def register_job_routes(app):
     logger.debug("Registering job routes")
 
     @app.route('/api/jobs', methods=['POST'])
+    @login_optional
     def create_job_initiate_route():
 
         try:
             data = request.json
             description = data.get("description")
-            user_id = get_user_id_from_request(request)
 
-            if not description or not user_id:
-                return jsonify({"error": "User, and description are required"}), 400
+            if not description:
+                return jsonify({"error": "Description is required"}), 400
 
-            job_id = job_service.initiate_job_creation(description, user_id)
+            job_id = job_service.initiate_job_creation(description)
 
             if job_id:
-                return jsonify({"jobId": job_id}), 202  # HTTP 202 Accepted
+                return jsonify({"jobId": job_id}), 202
             else:
                 return jsonify({"error": "Failed to initiate job creation"}), 500
 
@@ -34,6 +34,7 @@ def register_job_routes(app):
             return jsonify({"error": "Internal server error creating job"}), 500
 
     @app.route('/api/internal/process-job-background', methods=['POST'])
+    @login_optional
     def process_job_background_route():
         logger.debug("Processing background job route")
         try:
@@ -53,6 +54,7 @@ def register_job_routes(app):
             return jsonify({"error": "Internal server error handling background task trigger"}), 500
 
     @app.route('/api/jobs/<job_id>', methods=['GET'])
+    @login_optional
     def get_job_route(job_id):
         try:
             details = job_service.get_job_details(job_id)

@@ -7,38 +7,48 @@ from typing import Optional, Dict
 from dotenv import load_dotenv
 from uuid import UUID
 
-from flask import request
+from flask import g
 
+from api.db.supabase_client import get_supabase_client
 from api.db.repositories.question_repository import QuestionRepository
+from api.db.repositories.job_description_repository import JobDescriptionRepository
+
 from api.models import InterviewPreparation
 from api.services.llm_calls import generate_response
 from api.services.speech_service import get_default_speech_service
 from api.utils.logger_config import logger
-from api.db.repositories.job_description_repository import JobDescriptionRepository
+
 
 load_dotenv()
 
-job_desc_repo = JobDescriptionRepository()
-question_repo = QuestionRepository()
 speech_service = get_default_speech_service()
 
 
-def trigger_background_job_processing(job_description_id: UUID):
+# Decorator that auto creates supabase_client, and initializes the given repository
+def init_db_repo(repo_class):
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            supabase_client = get_supabase_client()
+            repo_instance = repo_class(supabase_client)
+            return func(repo_instance, *args, **kwargs)
+        return wrapper
+    return decorator
+
+
+@init_db_repo(JobDescriptionRepository)
+def trigger_background_job_processing(
+        job_desc_repo: JobDescriptionRepository,
+        job_description_id: UUID):
     """
     Makes an asynchronous HTTP POST request to the background processing endpoint.
     This function MUST be called from within an active Flask request context.
     """
-    if not request:
-        logger.error("No active Flask request context. Cannot determine host URL.")
 
-        base_url_fallback = f"https://{os.getenv('VERCEL_URL')}" if os.getenv("VERCEL_URL") else "http://localhost:3000"
-        if not base_url_fallback:
-            raise RuntimeError("Cannot determine application base URL for internal trigger.")
-        process_url = f"{base_url_fallback.rstrip('/')}/api/internal/process-job-background"
+    base_url = f"https://{os.getenv('VERCEL_URL')}" if os.getenv("VERCEL_URL") else "http://localhost:3000"
 
-    else:
-        base_url = request.host_url.rstrip('/')  # Remove trailing slash for clean join
-        process_url = f"{base_url}/api/internal/process-job-background"
+    if not base_url:
+        raise RuntimeError("Cannot determine application base URL for internal trigger.")
+    process_url = f"{base_url.rstrip('/')}/api/internal/process-job-background"
 
     payload = {"job_description_id": str(job_description_id)}
 
@@ -63,11 +73,16 @@ def trigger_background_job_processing(job_description_id: UUID):
         job_desc_repo.update_status(job_description_id, "failed")
 
 
-def initiate_job_creation(description_txt: str, user_id: UUID) -> Optional[str]:
+@init_db_repo(JobDescriptionRepository)
+def initiate_job_creation(
+        job_desc_repo: JobDescriptionRepository,
+        description_txt: str) -> Optional[str]:
     """
         Initiates job creation: saves initial data, triggers background processing.
         Returns basic job info for the client.
         """
+    user_id = g.get('user_id', None)
+
     logger.info(f"Initiating job creation by user {user_id} for job description {description_txt}")
     description_id = uuid.uuid4()
 
@@ -83,7 +98,7 @@ def initiate_job_creation(description_txt: str, user_id: UUID) -> Optional[str]:
 
     trigger_thread = threading.Thread(
         target=trigger_background_job_processing,
-        args=(description_id,)
+        args=(description_id, user_id)
     )
     trigger_thread.daemon = True  # Allows main program to exit even if thread is running
     trigger_thread.start()
@@ -97,7 +112,12 @@ def initiate_job_creation(description_txt: str, user_id: UUID) -> Optional[str]:
     return str(description_id)
 
 
-def process_job_background_task(job_description_id_str: str):
+@init_db_repo(QuestionRepository)
+@init_db_repo(JobDescriptionRepository)
+def process_job_background_task(
+        job_desc_repo: JobDescriptionRepository,
+        question_repo: QuestionRepository,
+        job_description_id_str: str):
     """
     The actual background task: fetches job, calls LLM, saves questions.
     This is called by the /api/internal/process-job-background endpoint.
@@ -166,10 +186,15 @@ def process_job_background_task(job_description_id_str: str):
             logger.error(f"Background: Could not even update status to failed for {job_description_id}: {db_e}")
 
 
-def get_job_details(job_id_str: str) -> Optional[Dict]:  # Renamed param for clarity
+@init_db_repo(QuestionRepository)
+@init_db_repo(JobDescriptionRepository)
+def get_job_details(
+        job_desc_repo: JobDescriptionRepository,
+        question_repo: QuestionRepository,
+        job_id_str: str) -> Optional[Dict]:
     """
     Retrieves job description, its status, and if completed, its generated questions
-    and formats it according to the frontend's QuestionsResponse interface.
+    and formats it according to the frontend QuestionsResponse interface.
     """
     try:
         job_id = UUID(job_id_str)
