@@ -17,7 +17,9 @@ apiClient.interceptors.request.use(
                 );
             } else if (session?.access_token) {
                 config.headers.Authorization = `Bearer ${session.access_token}`;
-                config.headers["x-refresh-token"] = session.refresh_token;
+                console.log("Supabase: Access token found, adding to request headers:", session.access_token);
+                config.headers["refresh-token"] = session.refresh_token;
+                console.log("Supabase: Refresh token found, adding to request headers:", session.refresh_token);
 
             } else {
                 console.warn(

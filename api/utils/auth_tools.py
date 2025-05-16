@@ -27,6 +27,7 @@ def login_required(func):
             logger.warning("Unauthorized access attempt.")
             return jsonify({"error": "Authentication required"}), 401
         return func(*args, **kwargs)
+
     return decorated_function
 
 
@@ -35,10 +36,12 @@ def login_optional(func):
     Decorator for routes that allow optional authentication.
     If user is authenticated, it will be available in `g.user_id`.
     """
+
     @wraps(func)
     def decorated_function(*args, **kwargs):
         get_current_user()
         return func(*args, **kwargs)
+
     return decorated_function
 
 
@@ -49,9 +52,8 @@ def get_current_user() -> Optional[UUID]:
     Stores the user_id in Flask's request context `g` if found.
     """
     auth_header = request.headers.get("Authorization")
-
     if not auth_header:
-        logger.warning("Authorization header is missing")
+        logger.warning("Authorization header is missing. No user is authenticated.")
         return None
 
     if not auth_header.startswith("Bearer "):
@@ -63,7 +65,10 @@ def get_current_user() -> Optional[UUID]:
     g.user_jwt = token  # Store the token in Flask's g context for later use
 
     # Store refresh token
-    refresh_token = request.headers.get("x-refresh-token", None)
+    refresh_token = request.headers.get("refresh-token", None)
+    if not refresh_token:
+        logger.warning("Refresh token is missing")
+
     g.refresh_token = refresh_token
 
     user_id = validate_token_and_get_user_id(token)
@@ -98,6 +103,7 @@ def validate_token_and_get_user_id(token: str) -> Optional[UUID]:
         return None
     except InvalidTokenError as e:  # errors like invalid signature, malformed token etc.
         logger.warning(f"Invalid token: {e}")
+        logger.warning(f"Received token: {token}")
         return None
     except Exception as e:
         logger.error(f"An unexpected error occurred during token processing: {e}")

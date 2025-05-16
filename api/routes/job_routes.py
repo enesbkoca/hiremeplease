@@ -1,4 +1,4 @@
-from flask import request, jsonify
+from flask import request, jsonify, g
 
 from api.services import job_service
 from api.utils.auth_tools import login_optional, login_required
@@ -19,7 +19,11 @@ def register_job_routes(app):
             if not description:
                 return jsonify({"error": "Description is required"}), 400
 
-            job_id = job_service.initiate_job_creation(description)
+            user_id = g.get("user_id", None)
+            user_jwt = g.get("user_jwt", None)
+            refresh_token = g.get("refresh_token", None)
+
+            job_id = job_service.initiate_job_creation(description, user_id, user_jwt, refresh_token)
 
             if job_id:
                 return jsonify({"jobId": job_id}), 202

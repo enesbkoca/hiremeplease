@@ -7,7 +7,6 @@ from typing import Optional, Dict
 from dotenv import load_dotenv
 from uuid import UUID
 
-from flask import g
 
 from api.db.supabase_client import get_supabase_client
 from api.db.repositories.question_repository import QuestionRepository
@@ -24,25 +23,16 @@ load_dotenv()
 speech_service = get_default_speech_service()
 
 
-# Decorator that auto creates supabase_client, and initializes the given repository
-def init_db_repo(repo_class):
-    def decorator(func):
-        def wrapper(*args, **kwargs):
-            supabase_client = get_supabase_client()
-            repo_instance = repo_class(supabase_client)
-            return func(repo_instance, *args, **kwargs)
-        return wrapper
-    return decorator
-
-
-@init_db_repo(JobDescriptionRepository)
 def trigger_background_job_processing(
-        job_desc_repo: JobDescriptionRepository,
-        job_description_id: UUID):
+        job_description_id: UUID,
+        user_jwt: str,
+        refresh_token: str):
     """
     Makes an asynchronous HTTP POST request to the background processing endpoint.
-    This function MUST be called from within an active Flask request context.
     """
+
+    supabase_client = get_supabase_client(user_jwt=user_jwt, refresh_token=refresh_token)
+    job_desc_repo = JobDescriptionRepository(supabase_client)
 
     base_url = f"https://{os.getenv('VERCEL_URL')}" if os.getenv("VERCEL_URL") else "http://localhost:3000"
 
@@ -53,8 +43,18 @@ def trigger_background_job_processing(
     payload = {"job_description_id": str(job_description_id)}
 
     logger.info(f"THREAD/TRIGGER (requests): Attempting for job ID: {job_description_id} to URL: {process_url}")
+
     try:
-        response = requests.post(process_url, json=payload, timeout=60.0)
+        # Send request with access token and refresh token
+        response = requests.post(
+            process_url,
+            json=payload,
+            timeout=60.0,
+        )
+
+        if user_jwt and refresh_token:
+            response.headers["Authorization"] = f"Bearer {user_jwt}"
+            response.headers["Refresh-Token"] = refresh_token
 
         if 200 <= response.status_code < 300:
             logger.info(f"THREAD/TRIGGER (requests): Successfully triggered. Status: {response.status_code}")
@@ -62,6 +62,7 @@ def trigger_background_job_processing(
             logger.error(
                 f"THREAD/TRIGGER (requests): Failed. HTTP Status: {response.status_code}, Response: {response.text}")
             job_desc_repo.update_status(job_description_id, "failed")
+
     except requests.exceptions.Timeout:
         logger.error(f"THREAD/TRIGGER (requests): Timeout for job {job_description_id} at {process_url}")
         job_desc_repo.update_status(job_description_id, "failed")
@@ -73,15 +74,13 @@ def trigger_background_job_processing(
         job_desc_repo.update_status(job_description_id, "failed")
 
 
-@init_db_repo(JobDescriptionRepository)
-def initiate_job_creation(
-        job_desc_repo: JobDescriptionRepository,
-        description_txt: str) -> Optional[str]:
+def initiate_job_creation(description_txt: str, user_id: UUID, user_jwt: UUID, refresh_token: UUID) -> Optional[str]:
     """
-        Initiates job creation: saves initial data, triggers background processing.
-        Returns basic job info for the client.
-        """
-    user_id = g.get('user_id', None)
+    Initiates job creation: saves initial data, triggers background processing.
+    Returns basic job info for the client.
+    """
+    supabase_client = get_supabase_client()
+    job_desc_repo = JobDescriptionRepository(supabase_client)
 
     logger.info(f"Initiating job creation by user {user_id} for job description {description_txt}")
     description_id = uuid.uuid4()
@@ -98,7 +97,7 @@ def initiate_job_creation(
 
     trigger_thread = threading.Thread(
         target=trigger_background_job_processing,
-        args=(description_id, user_id)
+        args=(description_id, user_jwt, refresh_token),
     )
     trigger_thread.daemon = True  # Allows main program to exit even if thread is running
     trigger_thread.start()
@@ -112,16 +111,15 @@ def initiate_job_creation(
     return str(description_id)
 
 
-@init_db_repo(QuestionRepository)
-@init_db_repo(JobDescriptionRepository)
-def process_job_background_task(
-        job_desc_repo: JobDescriptionRepository,
-        question_repo: QuestionRepository,
-        job_description_id_str: str):
+def process_job_background_task(job_description_id_str: str):
     """
     The actual background task: fetches job, calls LLM, saves questions.
     This is called by the /api/internal/process-job-background endpoint.
     """
+    supabase_client = get_supabase_client()
+    question_repo = QuestionRepository(supabase_client)
+    job_desc_repo = JobDescriptionRepository(supabase_client)
+
     try:
         job_description_id = UUID(job_description_id_str)
     except ValueError:
@@ -186,16 +184,16 @@ def process_job_background_task(
             logger.error(f"Background: Could not even update status to failed for {job_description_id}: {db_e}")
 
 
-@init_db_repo(QuestionRepository)
-@init_db_repo(JobDescriptionRepository)
-def get_job_details(
-        job_desc_repo: JobDescriptionRepository,
-        question_repo: QuestionRepository,
-        job_id_str: str) -> Optional[Dict]:
+def get_job_details(job_id_str: str) -> Optional[Dict]:
     """
     Retrieves job description, its status, and if completed, its generated questions
     and formats it according to the frontend QuestionsResponse interface.
     """
+
+    supabase_client = get_supabase_client()
+    job_desc_repo = JobDescriptionRepository(supabase_client)
+    question_repo = QuestionRepository(supabase_client)
+
     try:
         job_id = UUID(job_id_str)
     except ValueError:
