@@ -105,3 +105,30 @@ class JobDescriptionRepository(BaseRepository):
 
         except Exception as e:
             return self._handle_supabase_error(e, f"update_title ({job_description_id})")
+    
+    def get_user_job_details(self, user_id: Optional[UUID] = None) -> Optional[Dict[str, Any]]:
+        """Get all job descriptions filtered by user_id."""
+        if not self.client:
+            self.logger.error("Supabase client is not initialized. Cannot get job descriptions.")
+            return None
+
+        try:
+            query = self.client.table(self.table_name)\
+                .select("*")\
+                .order("created_at", desc=True)
+
+            if user_id:
+                query = query.eq("user_id", str(user_id))
+
+            data, count = query.execute()
+
+            if data and len(data[1]) > 0:
+                self.logger.info(f"Retrieved {len(data[1])} job descriptions.")
+                self.logger.debug(f"Job descriptions data: {data[1]}")
+                return data
+
+            self.logger.warning("No job descriptions found.")
+            return None
+
+        except Exception as e:
+            return self._handle_supabase_error(e, "get_all")

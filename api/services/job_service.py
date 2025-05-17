@@ -267,3 +267,21 @@ def get_job_details(job_id_str: str) -> Optional[Dict]:
         logger.info(f"Job {job_id} status is '{response_shell['status']}'. Results not populated.")
 
     return response_shell
+
+def get_user_job_details(user_id, user_jwt, refresh_token):
+        """Fetch all job descriptions."""
+        supabase_client = get_supabase_client(user_jwt=user_jwt, refresh_token=refresh_token)
+        job_desc_repo = JobDescriptionRepository(supabase_client)
+
+        
+        if not job_desc_repo.client:
+            job_desc_repo.logger.error("Supabase client is not initialized. Cannot fetch job descriptions.")
+            return None
+
+        data = job_desc_repo.get_user_job_details(user_id=user_id)
+        if data:
+            job_desc_repo.logger.info(f"Fetched {len(data[1])} job descriptions for user {user_id}.")
+            return data
+        else:
+            job_desc_repo.logger.warning(f"No job descriptions found for user {user_id}.")
+            return None

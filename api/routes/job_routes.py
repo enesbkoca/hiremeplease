@@ -74,3 +74,25 @@ def register_job_routes(app):
         except Exception as e:
             logger.error(f"Error retrieving job {job_id}: {str(e)}")
             return jsonify({"error": "Internal server error retrieving job"}), 500
+
+    @app.route('/api/fetch', methods=['GET'])
+    @login_optional
+    def fetch_user_jobs():
+        logger.debug("Fetching all job details route")
+        try:
+            user_id = g.get("user_id", None)
+            user_jwt = g.get("user_jwt", None)
+            refresh_token = g.get("refresh_token", None)
+
+            logger.info(f"User ID: {user_id}, JWT: {user_jwt}, Refresh Token: {refresh_token}")
+
+            job_descriptions = job_service.get_user_job_details(user_id, user_jwt, refresh_token)
+
+            if job_descriptions:
+                return jsonify(job_descriptions), 200
+            else:
+                return jsonify({"error": "No job descriptions found"}), 404
+
+        except Exception as e:
+            logger.error(f"Error fetching job descriptions: {str(e)}")
+            return jsonify({"error": "Internal server error fetching job descriptions"}), 500
