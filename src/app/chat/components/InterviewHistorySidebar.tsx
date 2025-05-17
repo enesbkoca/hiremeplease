@@ -1,29 +1,54 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Session } from '@supabase/supabase-js';
 import Profile from './Profile';
+import apiClient from '@/api';
 
 interface InterviewHistorySidebarProps {
   session: Session | null;
+}
+
+async function fetchInterviewHistory() {
+  try {
+    const res = await apiClient.get('/api/fetch');
+    console.log("User JWT token:", apiClient.defaults.headers.common['Authorization']);
+    return res.data;
+  } catch (error) {
+    console.error("Error fetching interview history:", error);
+    return [];
+  }
 }
 
 export const InterviewHistorySidebar: React.FC<InterviewHistorySidebarProps> = ({ 
   session 
 }) => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  
-  // Placeholder data for visual purposes
-  const interviewHistory = [
-    { id: '1', title: 'Frontend Developer Interview', date: '2023-05-15' },
-    { id: '2', title: 'Backend Engineer Questions', date: '2023-05-10' },
-    { id: '3', title: 'Full Stack Developer', date: '2023-05-01' },
-    { id: '4', title: 'Software Engineer Interview', date: '2023-04-25' },
-    { id: '5', title: 'DevOps Engineer Questions', date: '2023-04-20' },
-    { id: '6', title: 'Data Scientist Interview', date: '2023-04-15' },
-    { id: '7', title: 'Product Manager Questions', date: '2023-04-10' },
-    { id: '8', title: 'UX Designer Interview', date: '2023-04-05' },
-  ];
+
+  const [interviewHistory, setInterviewHistory] = useState<
+    { id: string; title: string; date: string }[]
+  >([]);
+
+    useEffect(() => {
+    const fetchJob = async () => {
+      const res = await fetchInterviewHistory();
+      const response = res[1];
+      console.log("Interview history response:", response);
+      if (response) {
+        const formattedData = Array.isArray(response) ? response.map(item => ({
+          id: item.id || item.description || String(Math.random()),
+          title: item.title || "Untitled Interview",
+          date: item.created_at || new Date().toISOString().split('T')[0]
+        })) : [];
+        
+        setInterviewHistory(formattedData);
+        console.log("Formatted interview history:", formattedData);
+      } else {
+        console.error("Failed to fetch interview history");
+      }
+    };
+    fetchJob();
+  }, []);
 
   return (
     <div className="w-full h-full flex flex-col bg-gray-50 rounded-xl shadow-md border border-gray-100 p-4">
