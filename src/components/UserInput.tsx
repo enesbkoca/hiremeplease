@@ -3,6 +3,7 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import { useLoading } from '@/context/LoadingContext';
+import apiClient from "@/api";
 
 interface UserInputProp {
     jobDescription: string;
@@ -47,14 +48,9 @@ export const UserInput: React.FC<UserInputProp> = ({
             const jobDescriptionElement = e.currentTarget.elements.jobDescription as HTMLTextAreaElement;
             const jobDescriptionValue = jobDescriptionElement.value;
 
-            // Send job description to the server
-            const response = await fetch("/api/jobs", {
-                method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({description: jobDescriptionValue}),
-            });
-
-            const {jobId} = await response.json();
+            const response = await apiClient.post("/api/jobs", {description: jobDescriptionValue});
+            const {jobId} = response.data;
+            console.log("Received jobId:", jobId);
             router.push(`/job/${jobId}`); // Redirect to the job page
         } else {
             console.error("jobDescription element not found in form.");

@@ -6,6 +6,8 @@ import { useLoading } from '@/context/LoadingContext';
 import { AllQuestions } from "@/components/AllQuestions";
 import { JobDetails } from "@/components/JobDetails";
 import { logger } from '@/utils/logger';
+import apiClient from '@/api';
+import axios from "axios";
 
 interface QuestionsResponse {
     status: string;
@@ -32,18 +34,35 @@ interface QuestionsResponse {
 async function getJobDetails(jobId: string): Promise<QuestionsResponse | null> {
     try {
         logger.debug(`Fetching job details for ID: ${jobId}`);
-        const res = await fetch(`/api/jobs/${jobId}`);
 
-        if (!res.ok) {
-            logger.error(`Failed to fetch job data: ${res.status} ${res.statusText}`);
-            return Promise.reject(new Error(`Failed to fetch job data: ${res.status} ${res.statusText}`));
-        }
-        
-        const data = await res.json();
+        const res = await apiClient.get(`/api/jobs/${jobId}`)
+
+        const data: QuestionsResponse = res.data;
         logger.info(`Successfully fetched job details for ID: ${jobId}`);
         return data;
     } catch (error) {
-        logger.error("Error fetching job data:", { error });
+        if (axios.isAxiosError(error)) {
+            if (error.response) {
+                logger.error(
+                    `Failed to fetch job data: ${error.response.status} ${error.response.statusText}`,
+                    {
+                        jobId: jobId,
+                        status: error.response.status,
+                        statusText: error.response.statusText,
+                        data: error.response.data,
+                    }
+                );
+            } else if (error.request) {
+                // The request was made but no response was received
+                logger.error("Error fetching job data: No response received from server", { jobId: jobId, request: error.request });
+            } else {
+                // Something happened in setting up the request that triggered an Error
+                logger.error("Error fetching job data: Error setting up request", { jobId: jobId, message: error.message });
+            }
+        } else {
+            // Not an Axios error
+            logger.error("Error fetching job data: An unexpected error occurred", { jobId: jobId, error });
+        }
         throw error;
     }
 }
@@ -77,7 +96,7 @@ export default function QuestionsPage({ jobId }: { jobId: string }) {
                 setJobResponse(response);
                 setSpeechToken(response.speech_token);
 
-                if (response.status !== "Completed") {
+                if (response.status !== "completed") {
                     logger.info(`Job ${jobId} still processing, scheduling next poll`);
                     timeoutId = setTimeout(fetchJob, 2000);
                 } else {

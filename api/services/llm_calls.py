@@ -7,11 +7,10 @@ import openai
 from openai import OpenAI
 from dotenv import load_dotenv
 
-from api.utils.logger_config import get_logger
-from api.utils.models import InterviewPreparation, Feedback
-from api.utils.prompts import question_generation_prompt, answer_analysis_prompt
+from api.utils.logger_config import logger
+from api.models import InterviewPreparation, Feedback
+from api.prompts import question_generation_prompt, answer_analysis_prompt
 
-logger = get_logger()
 load_dotenv()
 
 
@@ -23,7 +22,8 @@ except Exception as e:
     logger.error(f"Failed to initialize OpenAI client: {str(e)}\n{traceback.format_exc()}")
     raise
 
-def generate_response(job_description: str) -> Optional[dict]:
+
+def generate_response(job_description: str) -> Optional[InterviewPreparation]:
     """
     Generates structured interview questions based on a job description using OpenAI Chat Completion.
 
@@ -34,7 +34,6 @@ def generate_response(job_description: str) -> Optional[dict]:
         A dictionary representing the structured JSON output, or None if an error occurs.
     """
     logger.debug(f"Generating response for job description of length: {len(job_description)}")
-
 
     user_message = {"role": "user", "content": job_description}
 
@@ -49,6 +48,9 @@ def generate_response(job_description: str) -> Optional[dict]:
         
         logger.info("Successfully generated interview questions")
         json_output = response.choices[0].message
+
+        logger.info(f"Generated JSON output from OpenAI API: {json_output.content}")
+        # Return the parsed JSON content in the expected format
         return json.loads(json_output.content)
 
     except json.JSONDecodeError as e:
@@ -72,6 +74,7 @@ def generate_response(job_description: str) -> Optional[dict]:
         logger.error(f"{error_msg}\n{traceback.format_exc()}")
         return None
 
+
 def generate_answer_analysis(answer_text: str) -> Optional[dict]:
     logger.debug(f"Analyzing answer of length: {len(answer_text)}")
 
@@ -94,5 +97,3 @@ def generate_answer_analysis(answer_text: str) -> Optional[dict]:
         error_msg = f"Error generating answer analysis: {str(e)}"
         logger.error(f"{error_msg}\n{traceback.format_exc()}")
         return None
-
-
