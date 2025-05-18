@@ -8,7 +8,7 @@ class QuestionRepository(BaseRepository):
     def __init__(self, db_client):
         super().__init__("questions", db_client)
 
-    def create_batch(self, questions: List[Dict]):
+    def create_questions_batch(self, questions: List[Dict]):
         if not self.client:
             self.logger.error("Supabase client not initialized. Cannot create questions.")
             return []
