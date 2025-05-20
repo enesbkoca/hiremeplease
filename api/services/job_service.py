@@ -268,9 +268,9 @@ def get_job_details(job_id_str: str) -> Optional[Dict]:
 
     return response_shell
 
-def get_user_job_details(user_id, user_jwt, refresh_token):
+def get_user_job_details(user_id):
         """Fetch all job descriptions."""
-        supabase_client = get_supabase_client(user_jwt=user_jwt, refresh_token=refresh_token)
+        supabase_client = get_supabase_client()
         job_desc_repo = JobDescriptionRepository(supabase_client)
 
         
