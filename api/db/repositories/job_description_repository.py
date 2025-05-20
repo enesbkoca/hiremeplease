@@ -117,9 +117,6 @@ class JobDescriptionRepository(BaseRepository):
                 .select("*")\
                 .order("created_at", desc=True)
 
-            if user_id:
-                query = query.eq("user_id", str(user_id))
-
             data, count = query.execute()
 
             if data and len(data[1]) > 0:
