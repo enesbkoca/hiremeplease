@@ -63,10 +63,6 @@ export default function App() {
         )
     }
 
-
-    logger.debug("Rendering login page")
-    logger.debug(`Session loading: ${sessionLoading}`);
-    logger.debug(`Session: ${session}`);
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50">
             <div className="max-w-md w-full p-8 rounded-xl shadow-lg bg-white border border-gray-100 space-y-6">
