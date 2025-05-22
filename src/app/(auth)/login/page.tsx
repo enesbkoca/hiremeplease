@@ -1,41 +1,38 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Session } from '@supabase/supabase-js'
 import { useRouter } from 'next/navigation'
-import { supabase } from '@/utils/supabase';
+import { useSessionContext } from "@/context/SessionContext";
+import { supabase } from "@/utils/supabase";
+import { logger } from '@/utils/logger'
+import LoadingIndicator from "@/components/LoadingIndicator";
+
 
 export default function App() {
   // Define state variables
-  const [session, setSession] = useState<Session | null>(null)
+  const { session, loading: sessionLoading, user} = useSessionContext();
   const [email, setEmail] = useState('')
-  const [loading, setLoading] = useState(false)
+  const [formLoading, setFormLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const router = useRouter();
 
-  // Get the current session
+
+  // Effect to redirect if user is already logged in
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session)
-    })
-
-    // Listen for changes in the session
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session)
-    })
-
-    return () => subscription.unsubscribe()
-  }, [])
+    // Only redirect if session is loaded (sessionLoading is false) AND a session exists
+    if (!sessionLoading && session) {
+      logger.info(`User already logged in. User: ${user?.email} Redirecting to /chat`);
+      router.push('/chat');
+    }
+  }, [session, sessionLoading, router, user]);
 
   // Send OTP
   const handleSendOTP = async (e: React.FormEvent) => {
     e.preventDefault()
-    setLoading(true)
+    setFormLoading(true)
     setError(null)
 
-    const { error } = await supabase.auth.signInWithOtp({
+    const { error: optError } = await supabase.auth.signInWithOtp({
       email,
       options: {
         shouldCreateUser: true,
@@ -43,17 +40,28 @@ export default function App() {
     })
 
 
-    if (error) {
-      setError(error.message)
+    if (optError) {
+      setError(optError.message)
     } else {
       router.push(`/login/verify?email=${encodeURIComponent(email)}`);
     }
-    setLoading(false)
+    setFormLoading(false)
+  }
+
+  if (sessionLoading) {
+    return (
+        <div className="flex justify-center items-center h-[calc(100vh-200px)]">
+          <LoadingIndicator size={50}/>
+        </div>
+    );
   }
 
   if (session) {
-    router.push('/chat')
-    return null
+    return (
+        <div className="flex justify-center items-center h-[calc(100vh-200px)]">
+          <LoadingIndicator size={50}/>
+        </div>
+    )
   }
 
   return (
@@ -91,10 +99,10 @@ export default function App() {
             <div>
               <button
                   type="submit"
-                  disabled={loading}
+                  disabled={formLoading}
                   className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-semibold rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
               >
-                {loading ? 'Sending OTP...' : 'Send Verification Code'}
+                {formLoading ? 'Sending OTP...' : 'Send Verification Code'}
               </button>
             </div>
           </form>
