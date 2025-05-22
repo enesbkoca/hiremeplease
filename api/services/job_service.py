@@ -278,7 +278,7 @@ def get_user_job_details(user_id):
             job_desc_repo.logger.error("Supabase client is not initialized. Cannot fetch job descriptions.")
             return None
 
-        data = job_desc_repo.get_job_details(user_id=user_id)
+        data = job_desc_repo.get_job_details()
         if data:
             job_desc_repo.logger.info(f"Fetched {len(data[1])} job descriptions for user {user_id}.")
             return data

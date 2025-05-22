@@ -86,7 +86,7 @@ def register_job_routes(app):
 
             logger.info(f"User ID: {user_id}, JWT: {user_jwt}, Refresh Token: {refresh_token}")
 
-            job_descriptions = job_service.get_user_job_details(user_id, user_jwt, refresh_token)
+            job_descriptions = job_service.get_user_job_details(user_id)
 
             if job_descriptions:
                 return jsonify(job_descriptions), 200
