@@ -7,6 +7,7 @@ import { supabase } from '@/utils/supabase';
 interface  SessionContextType {
     session: Session | null;
     user: User | null;
+    loading: boolean;
     getUserEmail: () => string | null;
     signOut: () => Promise<void>;
 }
@@ -58,7 +59,7 @@ export const SessionProvider = ({ children }: { children: ReactNode }) => {
     }
 
     return (
-        <SessionContext.Provider value={{ session, user, getUserEmail, signOut }}>
+        <SessionContext.Provider value={{ session, user, getUserEmail, signOut, loading }}>
             {children}
         </SessionContext.Provider>
     );
