@@ -23,7 +23,7 @@ def login_required(func):
 
     @wraps(func)
     def decorated_function(*args, **kwargs):
-        if not get_current_user():
+        if not g.get("user_id"):
             logger.warning("Unauthorized access attempt.")
             return jsonify({"error": "Authentication required"}), 401
         return func(*args, **kwargs)
@@ -31,18 +31,19 @@ def login_required(func):
     return decorated_function
 
 
-def login_optional(func):
+def auth_context_processor():
     """
-    Decorator for routes that allow optional authentication.
-    If user is authenticated, it will be available in `g.user_id`.
+    Sets g.user_id, g.user_jwt, g.refresh_token based on request headers.
+    To be called via @app.before_request.
     """
 
-    @wraps(func)
-    def decorated_function(*args, **kwargs):
-        get_current_user()
-        return func(*args, **kwargs)
+    # Initialize g attributes
+    g.user_id = None
+    g.user_jwt = None
+    g.refresh_token = None
 
-    return decorated_function
+    # Parse headers and sets on g
+    get_current_user()
 
 
 def get_current_user() -> Optional[UUID]:
