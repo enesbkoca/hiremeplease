@@ -93,11 +93,10 @@ export const InterviewHistorySidebar: React.FC<InterviewHistorySidebarProps> = (
             const tempDate = new Date(dateForParsing);
             const localStartOfDay = new Date(tempDate.getFullYear(), tempDate.getMonth(), tempDate.getDate());
             // Format display date as YYYY-MM-DD
-            let displayDate: string;
             const year = tempDate.getFullYear();
             const month = (tempDate.getMonth() + 1).toString().padStart(2, '0');
             const day = tempDate.getDate().toString().padStart(2, '0');
-            displayDate = `${year}-${month}-${day}`;
+            const displayDate = `${year}-${month}-${day}`;
             
             return {
               id: item.id,
@@ -176,7 +175,7 @@ export const InterviewHistorySidebar: React.FC<InterviewHistorySidebarProps> = (
             </div>
           ))
         ) : (
-          <p className="text-gray-500 text-sm text-center mt-4">No interview history yet. Click "+ New" to begin!</p>
+          <p className="text-gray-500 text-sm text-center mt-4">No interview history yet. Click &quot;+ New&quot; to begin!</p>
         )}
       </div>
       
