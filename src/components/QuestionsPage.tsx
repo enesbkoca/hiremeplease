@@ -9,7 +9,7 @@ import { logger } from '@/utils/logger';
 import apiClient from '@/api';
 import axios from "axios";
 
-interface QuestionsResponse {
+export interface QuestionsResponse {
     status: string;
     description: string;
     speech_token: string;
@@ -31,7 +31,7 @@ interface QuestionsResponse {
     } | null;
 }
 
-async function getJobDetails(jobId: string): Promise<QuestionsResponse | null> {
+export async function getJobDetails(jobId: string): Promise<QuestionsResponse | null> {
     try {
         logger.debug(`Fetching job details for ID: ${jobId}`);
 
