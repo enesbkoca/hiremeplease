@@ -1,4 +1,4 @@
-export default interface BasicError {
+export interface BasicError {
     response?: {
         status?: number;
         data?: {

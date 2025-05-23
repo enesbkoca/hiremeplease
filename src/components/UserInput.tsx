@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useLoading } from '@/context/LoadingContext';
 import { formatDuration } from '@/utils/formatDuration';
 import apiClient from "@/api";
-import BasicError from "@/app/types/error";
+import type { BasicError } from "@/app/types/error";
 
 interface UserInputProp {
     jobDescription: string;
@@ -63,7 +63,8 @@ export const UserInput: React.FC<UserInputProp> = ({
                 const {jobId} = response.data;
                 console.log("Received jobId:", jobId);
                 router.push(`/job/${jobId}`); // Redirect to the job page
-            } catch (error: BasicError) { // Catch any error
+            } catch (rawError: unknown) { // Catch any error
+                const error = rawError as BasicError;
                 console.error("API Error:", error);
                 setIsLoading(false); // Ensure loading is stopped on error
 
@@ -80,12 +81,12 @@ export const UserInput: React.FC<UserInputProp> = ({
                     let waitSeconds = 60 * 60 * 24; // Default wait if no header
 
                     if (retryHeader) {
-                        const parsedSeconds = parseInt(retryHeader, 10);
+                        const parsedSeconds = parseInt(retryHeader as string, 10);
                         if (!isNaN(parsedSeconds) && parsedSeconds > 0) {
                             waitSeconds = parsedSeconds;
                         } else {
                             // Try to parse as HTTP-date
-                            const date = new Date(retryHeader);
+                            const date = new Date(retryHeader as string);
                             if (!isNaN(date.getTime())) {
                                 const now = new Date();
                                 waitSeconds = Math.max(0, Math.ceil((date.getTime() - now.getTime()) / 1000));
