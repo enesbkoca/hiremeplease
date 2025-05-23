@@ -268,7 +268,7 @@ def get_job_details(job_id_str: str) -> Optional[Dict]:
 
     return response_shell
 
-def get_user_job_details(user_id):
+def get_user_job_details():
         """Fetch all job descriptions."""
         supabase_client = get_supabase_client()
         job_desc_repo = JobDescriptionRepository(supabase_client)
@@ -280,8 +280,8 @@ def get_user_job_details(user_id):
 
         data = job_desc_repo.get_job_details()
         if data:
-            job_desc_repo.logger.info(f"Fetched {len(data[1])} job descriptions for user {user_id}.")
+            job_desc_repo.logger.info(f"Fetched {len(data[1])} job descriptions.")
             return data
         else:
-            job_desc_repo.logger.warning(f"No job descriptions found for user {user_id}.")
+            job_desc_repo.logger.warning(f"No job descriptions found.")
             return None

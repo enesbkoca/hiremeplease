@@ -80,13 +80,7 @@ def register_job_routes(app):
     def fetch_user_jobs():
         logger.debug("Fetching all job details route")
         try:
-            user_id = g.get("user_id", None)
-            user_jwt = g.get("user_jwt", None)
-            refresh_token = g.get("refresh_token", None)
-
-            logger.info(f"User ID: {user_id}, JWT: {user_jwt}, Refresh Token: {refresh_token}")
-
-            job_descriptions = job_service.get_user_job_details(user_id)
+            job_descriptions = job_service.get_user_job_details()
 
             if job_descriptions:
                 return jsonify(job_descriptions), 200
