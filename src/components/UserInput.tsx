@@ -62,7 +62,7 @@ export const UserInput: React.FC<UserInputProp> = ({
                 const {jobId} = response.data;
                 console.log("Received jobId:", jobId);
                 router.push(`/job/${jobId}`); // Redirect to the job page
-            } catch (error) { // Catch any error
+            } catch (error: any) { // Catch any error
                 console.error("API Error:", error);
                 setIsLoading(false); // Ensure loading is stopped on error
 
