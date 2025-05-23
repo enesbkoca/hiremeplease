@@ -119,9 +119,10 @@ class JobDescriptionRepository(BaseRepository):
 
             data, count = query.execute()
 
-            if data and len(data[1]) > 0:
-                self.logger.info(f"Retrieved {len(data[1])} job descriptions.")
-                self.logger.debug(f"Job descriptions data: {data[1]}")
+            records = data[1] if data and len(data) > 1 else []
+            if records:
+                self.logger.info(f"Retrieved {len(records)} job descriptions.")
+                self.logger.debug(f"Job descriptions data: {records}")
                 return data
 
             self.logger.warning("No job descriptions found.")
