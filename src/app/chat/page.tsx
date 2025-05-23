@@ -2,28 +2,49 @@
 
 import { useState, useEffect } from 'react';
 import { UserInput } from "@/components/UserInput";
-import { supabase } from '@/utils/supabase'
-import { Session } from '@supabase/supabase-js'
+import { useSessionContext } from "@/context/SessionContext";
 import { logger } from '@/utils/logger'
 import { InterviewHistorySidebar } from './components/InterviewHistorySidebar';
+import {useRouter} from "next/navigation";
+import LoadingIndicator from "@/components/LoadingIndicator";
+
 import QuestionsPage from '@/components/QuestionsPage';
 
 export default function ChatPage() {
     const [jobDescription, setJobDescription] = useState("");
-    const [session, setSession] = useState<Session | null>(null)
+    const { user, session, loading: sessionLoading } = useSessionContext();
+    const router = useRouter();
     const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
 
-    useEffect(() => {
-        supabase.auth.getSession().then(({ data: { session } }) => {
-            setSession(session)
-            logger.info('Chat Sessionn:', { session })
-        })
-    }, []);
-
-    // TODO: Implement the logic to wait for the session to be loaded
     // If there is no session, redirect to the login page
+    useEffect(() => {
+    // Only redirect if session is loaded (sessionLoading is false) AND a session exists
+    if (!sessionLoading && !session) {
+      logger.info('No user logged in. Redirecting to /login');
+      router.push('/login');
+    }
+  }, [session, sessionLoading, router, user]);
+
+
+    // 1. Show loading state
+    if (sessionLoading) {
+        return (
+            <div className="flex justify-center items-center h-[calc(100vh-200px)]">
+                <LoadingIndicator size={50}/>
+            </div>
+        );
+    }
+
+    // 2. If not loading and no session, user will be redirected.
+    //    Render null or a minimal message to prevent main UI flash.
     if (!session) {
-        return <div>loading..</div>//router.push('/login')
+        // The useEffect above will handle the redirect.
+        // This prevents rendering the main page content if there's no session.
+        return (
+            <div className="flex justify-center items-center h-[calc(100vh-200px)]">
+                <LoadingIndicator size={50}/>
+            </div>
+        );
     }
 
     const handleJobSelect = (jobId: string | null) => {
@@ -33,6 +54,7 @@ export default function ChatPage() {
             setJobDescription("");
         }
     };
+  // 3. Session exists, render the main content.
   return (
     <main className="flex gap-6 h-[calc(100vh-200px)]">
       {/* Left Side - Interview History Sidebar */}

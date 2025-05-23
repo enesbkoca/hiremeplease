@@ -179,7 +179,7 @@ def process_job_background_task(job_description_id_str: str):
             })
 
         if questions_to_insert:
-            question_repo.create_batch(questions_to_insert)
+            question_repo.create_questions_batch(questions_to_insert)
 
         job_desc_repo.update_status(job_description_id, "completed")
         logger.info(f"Background: Successfully processed job {job_description_id}")

@@ -2,18 +2,23 @@
 
 import React from 'react';
 import { useRouter } from 'next/navigation';
-import { supabase } from '@/utils/supabase';
 import { useSessionContext } from '@/context/SessionContext';
 
 const AuthPanel: React.FC = () => {
   const router = useRouter();
-  const { session } = useSessionContext();
+  const { session, signOut } = useSessionContext();
 
 
   const handleAuthAction = () => {
     if (session) {
-      supabase.auth.signOut();
-      router.push('/');
+      signOut().then(
+        () => {
+          router.push('/');
+        }
+      ).catch((error) => {
+        console.error('Error signing out:', error);
+        }
+      );
     } else {
       router.push('/login');
     }

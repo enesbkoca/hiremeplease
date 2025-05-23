@@ -1,63 +1,74 @@
 'use client'
 
 import { createContext, useState, useContext, ReactNode, useEffect } from 'react';
-import { Session } from '@supabase/supabase-js';
+import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/utils/supabase';
 
-const SessionContext = createContext<{
+interface  SessionContextType {
     session: Session | null;
-    setSession: (session: Session | null) => void;
+    user: User | null;
+    loading: boolean;
     getUserEmail: () => string | null;
-}>({
-    session: null,
-    setSession: () => { },
-    getUserEmail: () => null,
-});
+    signOut: () => Promise<void>;
+}
+
+const SessionContext = createContext<SessionContextType | undefined>(undefined);
+
 
 export const SessionProvider = ({ children }: { children: ReactNode }) => {
     const [session, setSession] = useState<Session | null>(null);
-    const getUserEmail = () => {
-        if (session) {
-            return session.user?.email || null;
-        }
-        return null;
-    };
+    const [user, setUser] = useState<User | null>(null);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        setLoading(true);
         // Initial session fetch (still useful for page load)
-        supabase.auth.getSession().then(({ data: { session } }) => {
-            setSession(session);
-        });
+        supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
+            setSession(currentSession);
+            setUser(currentSession?.user || null);
+            setLoading(false);
+        }).catch(() => {
+            setLoading(false);
+        })
 
         // Set up auth state change listener
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
-            async (event, session) => {
+            async (event, currentSession) => {
                 console.log("Auth State Change Event:", event);
+                setSession(currentSession);
+                setUser(currentSession?.user ?? null);
 
-                if (event === 'SIGNED_OUT') {
-                    console.log("SIGNED_OUT event detected");
-                    // Update session to null
-                    setSession(session);
-                } 
-                // Handle SIGN_IN session events
-                else if (event === 'SIGNED_IN') {
-                    console.log("SIGNED_IN event detected");
-                    setSession(session);
+                // If somehow was loading, set it to false
+                if (loading) {
+                    setLoading(false);
                 }
             }
         );
 
         return () => {
-            subscription.unsubscribe(); // Cleanup the subscription on unmount
+            subscription?.unsubscribe(); // Cleanup the subscription on unmount
         };
     }, []);
 
+    const getUserEmail = () => {
+        return user?.email ?? null;
+    };
+
+    const signOut = async () => {
+        await supabase.auth.signOut();
+    }
 
     return (
-        <SessionContext.Provider value={{ session, setSession, getUserEmail }}>
+        <SessionContext.Provider value={{ session, user, getUserEmail, signOut, loading }}>
             {children}
         </SessionContext.Provider>
     );
 };
 
-export const useSessionContext = () => useContext(SessionContext);
+export const useSessionContext = () => {
+    const context = useContext(SessionContext);
+    if (context === undefined) {
+        throw new Error('useSessionContext must be used within a SessionProvider');
+    }
+    return context;
+}

@@ -1,7 +1,7 @@
 from flask import request, jsonify, g
 
 from api.services import job_service
-from api.utils.auth_tools import login_optional, login_required
+from api.utils.authentication import login_optional, login_required
 from api.utils.logger_config import logger
 
 
