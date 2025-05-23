@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useLoading } from '@/context/LoadingContext';
 import { formatDuration } from '@/utils/formatDuration';
 import apiClient from "@/api";
+import BasicError from "@/app/types/error";
 
 interface UserInputProp {
     jobDescription: string;
@@ -62,7 +63,7 @@ export const UserInput: React.FC<UserInputProp> = ({
                 const {jobId} = response.data;
                 console.log("Received jobId:", jobId);
                 router.push(`/job/${jobId}`); // Redirect to the job page
-            } catch (error: any) { // Catch any error
+            } catch (error: BasicError) { // Catch any error
                 console.error("API Error:", error);
                 setIsLoading(false); // Ensure loading is stopped on error
 
