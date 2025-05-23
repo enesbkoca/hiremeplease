@@ -75,7 +75,7 @@ def register_job_routes(app):
             logger.error(f"Error retrieving job {job_id}: {str(e)}")
             return jsonify({"error": "Internal server error retrieving job"}), 500
 
-    @app.route('/api/fetch', methods=['GET'])
+    @app.route('/api/jobs', methods=['GET'])
     @login_optional
     def fetch_user_jobs():
         logger.debug("Fetching all job details route")
