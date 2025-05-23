@@ -1,15 +1,15 @@
 from flask import request, jsonify, g
 
 from api.services import job_service
-from api.utils.authentication import login_optional, login_required
 from api.utils.logger_config import logger
+from api.utils.rate_limiter import limiter
 
 
 def register_job_routes(app):
     logger.debug("Registering job routes")
 
     @app.route('/api/jobs', methods=['POST'])
-    @login_optional
+    @limiter.limit("1 per day")
     def create_job_initiate_route():
 
         try:
@@ -38,7 +38,6 @@ def register_job_routes(app):
             return jsonify({"error": "Internal server error creating job"}), 500
 
     @app.route('/api/internal/process-job-background', methods=['POST'])
-    @login_optional
     def process_job_background_route():
         logger.debug("Processing background job route")
         try:
@@ -58,7 +57,6 @@ def register_job_routes(app):
             return jsonify({"error": "Internal server error handling background task trigger"}), 500
 
     @app.route('/api/jobs/<job_id>', methods=['GET'])
-    @login_optional
     def get_job_route(job_id):
         try:
             details = job_service.get_job_details(job_id)
