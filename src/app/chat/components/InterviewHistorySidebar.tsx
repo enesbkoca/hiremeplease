@@ -21,7 +21,7 @@ interface InterviewItem {
 
 async function fetchJobHistory() {
   try {
-    const res = await apiClient.get('/api/fetch');
+    const res = await apiClient.get('/api/jobs');
     return res.data; 
   } catch (error) {
     console.error("Error fetching interview history:", error);
